@@ -1,11 +1,15 @@
 const c = console.log;
 
 
-const dateValue = document.getElementById('date-value');
-const takeDate = document.getElementById('take-date');
-const dateResult = document.getElementById('date-result');
+const dateValue = document.getElementById('date-value'); //поле ввода даты
+const takeDate = document.getElementById('take-date'); //кнопка получить дату
+const dateResult = document.getElementById('date-result'); //блок с разницей по дням
+const checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
+const inputTime = document.getElementById('input-time'); //поле ввода времени
 
-const dateNow = new Date;
+
+
+const dateNow = new Date(); //сколько времени Сейчас
 let newDate; //сюда запишется дата введёная пользователем
 let differenceInDays; //сюда запишется разница между введёной датой и нынешней
 
@@ -16,47 +20,25 @@ const getDifferenceInDays = (date1, date2) =>  Math.ceil(Math.abs(date2.getTime(
 
 //происходит по клику на кнопку "Получить дату"
 takeDate.onclick = () => {
-    if(dateValue.value.length === 0) dateResult.textContent='Введите, пожалуйста, дату'; //проверка, введена ли дата
-    else {
-        newDate = new Date (dateValue.value)
-        differenceInDays=getDifferenceInDays(newDate, dateNow);
-        c(`Сейчас: ${dateNow}. Введённая дата: ${newDate}. Разница между ними в днях: ${differenceInDays}`)
-        dateResult.textContent=`Разница в днях между датами: ${differenceInDays}`;
-    }
+  if(dateValue.value.length === 0) dateResult.textContent='Введите, пожалуйста, дату'; //проверка, введена ли дата
+  else {
+    const time = inputTime.value ? inputTime.value : '00:00:01'; //если пользовател не ввёл дату, то поставится 00:00:01
+    newDate = new Date (`${dateValue.value}T${time}`) //получаем дату и время (при наличии) на момент нажатия кнопки
+    differenceInDays=getDifferenceInDays(newDate, dateNow); //рассчитали разницу между датами в днях
+    c(`Сейчас: ${dateNow}. Введённая дата: ${newDate}. Разница между ними в днях: ${differenceInDays}`)
+    dateResult.textContent=`Разница в днях между датами: ${differenceInDays}`; 
+  }
 }
 
 
+//происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
+checkboxTime.onchange = (event) => {
+  event.target.checked === false ? inputTime.classList.add('hidden') : inputTime.classList.remove('hidden');
+}
 
 
 //ЗАГОТОВКИ
 //функция для создания новой даты
 const getNewDate = (year, month, date, hours=0, minutes=0) => new Date(year, month, date, hours, minutes);
 
-//заготовка под таймер
-const monthNames = ["January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const checkTime = (date, idElement) => {
-    var date = date;
-    var sufix = '';
-    var hours = ('0' + date.getHours()).slice(-2);
-    var minutes = ('0' + date.getMinutes()).slice(-2);
-    var day = date.getDate();
-    var month = monthNames[date.getMonth()];
-    var weekday = dayNames[date.getDay()];
-    if (day > 3 && day < 21) sufix = 'th';
-    switch (day % 10) {
-      case 1:
-        sufix = "st";
-      case 2:
-        sufix = "nd";
-      case 3:
-        sufix = "rd";
-      default:
-        sufix = "th";
-    }
-    document.getElementById(idElement).innerHTML = "  Сейчас <span class='hour'>" + hours + ":" + minutes + "</span><br/><span class='date'>" + month + ' ' + day + sufix + ', ' + weekday + '.';
-}
-
-checkTime(dateNow, 'timer')
+// https://www.htmlgoodies.com/html5/javascript/calculating-the-difference-between-two-dates-in-javascript.html

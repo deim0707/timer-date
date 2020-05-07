@@ -8,6 +8,7 @@
   },
   "devDependencies": {},
   "scripts": {
+    "start": "browser-sync start --server --files \"*.html ,\"*.css ,\"*.js\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

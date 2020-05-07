@@ -1,2 +1,0 @@
-запуск бравзер синка, из папки project:
-browser-sync start --server --files "*.html ,"*.css ,"*.js"

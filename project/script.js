@@ -4,17 +4,15 @@ const dateValue = document.getElementById('date-value'); //поле ввода �
 const takeDate = document.getElementById('take-date'); //кнопка получить дату
 const dateResult = document.getElementById('date-result'); //блок с разницей по дням
 const checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
-const inputTime = document.getElementById('input-time'); //поле ввода времени
+const timeValue = document.getElementById('input-time'); //поле ввода времени
 
 
 //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
 checkboxTime.onchange = (event) => {
-  event.target.checked === false ? inputTime.classList.add('hidden') : inputTime.classList.remove('hidden');
+  event.target.checked === false ? timeValue.classList.add('hidden') : timeValue.classList.remove('hidden');
 }
 
-
 class EventHelpers {
-  constructor(){}
   //приводит дату к годам, месяцам, дням, минутам, секундам
   timeFormatter = (date) => {
     const ms = date;
@@ -47,62 +45,82 @@ class EventHelpers {
 }
 
 class Event extends EventHelpers {
-  constructor (date, time='00:00:01') {
+  constructor (date, time) {
     super();
-    this.newDate = new Date (`${date}T${time}`)
+    this._id = Event.counter;
+    this.newDate = new Date(`${date}T${time || '00:00:01'}`)
     this.dateNow = new Date();
     this.difference = this.timeFormatter(this.newDate-this.dateNow); //рассчитали разницу между датами в днях
   }
+
+  static get counter() { //счётчик для id
+    Event._counter = (Event._counter || 0) + 1;
+    return Event._counter;
+  }
 }
 
-//функция отвечающая за рендер элемента
-const renderEvent = (newTimer) => {
-  const el = document.createElement('div'); //создали новый элемент, который позже вставим в конец body
-
-  el.textContent = `Разница между датами. 
-  Лет: ${newTimer.difference.years}.
-  Месяцев: ${newTimer.difference.mounths}. 
-  Дней: ${newTimer.difference.days}. 
-  Часов: ${newTimer.difference.hours}. 
-  Минут: ${newTimer.difference.minutes}. 
-  Секунд: ${newTimer.difference.seconds}`; 
-
-  document.body.appendChild(el); //вставили в конец body
-
-  setInterval(
-    () => {
-      el.textContent = `Разница между датами. Лет: ${newTimer.difference.years}. Месяцев: ${newTimer.difference.mounths}. Дней: ${newTimer.difference.days}. Часов: ${newTimer.difference.hours}. Минут: ${newTimer.difference.minutes}. Секунд: ${newTimer.difference.seconds}`; //формируем из поступившего объекта текстовое содержимое с разницей во времени
-
-      newTimer.difference=newTimer.countDownTimer(newTimer.difference.ms);
-    }, 1000
-  )
-}
 
 // takeDate.onclick = () => {
 //   if(dateValue.value.length === 0) dateResult.textContent='Введите, пожалуйста, дату'; //проверка, введена ли дата
 //   else {
-//     const newTimer = new Event(dateValue.value)
-//     dateResult.textContent = `Разница между датами. Лет: ${newTimer.difference.years}. Месяцев: ${newTimer.difference.mounths}. Дней: ${newTimer.difference.days}. Часов: ${newTimer.difference.hours}. Минут: ${newTimer.difference.minutes}. Секунд: ${newTimer.difference.seconds}`; 
-
-//     setInterval( () => {
-//       newTimer.difference = newTimer.countDownTimer(newTimer.difference.ms);
-//       dateResult.textContent = `Разница между датами. Лет: ${newTimer.difference.years}. Месяцев: ${newTimer.difference.mounths}. Дней: ${newTimer.difference.days}. Часов: ${newTimer.difference.hours}. Минут: ${newTimer.difference.minutes}. Секунд: ${newTimer.difference.seconds}`; 
-//     }, 1000)
+//     const newTimer = new Event(dateValue.value, timeValue.value);
+//     renderEvent(newTimer);
+//     dateValue.value = ''; //обнуляем значение поле поссле нажатия на кнопку
+//     timeValue.value = '';
 //   }
 // }
+
+const addEvents = () => {
+  
+}
+
+
+let events = [
+  new Event('2020-08-08'),
+  new Event('2022-08-15', '11:30:30'),
+  new Event('2032-01-01', '11:30:50')
+];
+
+const renderEvents = (arr) => {
+  if (arr.length === 0) c('Список событий пуст');
+
+  else {
+    let arrForDiv = []; //массив, где будут лежать результаты createElement
+
+    arr.forEach( (event, idx) => {
+      arrForDiv.push(document.createElement('div')); //создаём для каждого элемента массива тэг
+
+      arrForDiv[idx].textContent = `Разница между датами. Лет: ${arr[idx].difference.years}. Месяцев: ${arr[idx].difference.mounths}. Дней: ${arr[idx].difference.days}. Часов: ${arr[idx].difference.hours}. Минут: ${arr[idx].difference.minutes}. Секунд: ${arr[idx].difference.seconds}`; //для каждого созданного тега делаем текстовое содержимое 
+
+      dateResult.appendChild(arrForDiv[idx]); //вставляем на страницу
+    })
+
+    //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
+    setInterval(
+      () => {
+        arr.forEach((event, idx)=> {
+          event.difference=event.countDownTimer(event.difference.ms);
+
+          arrForDiv[idx].textContent = `Разница между датами. Лет: ${arr[idx].difference.years}. Месяцев: ${arr[idx].difference.mounths}. Дней: ${arr[idx].difference.days}. Часов: ${arr[idx].difference.hours}. Минут: ${arr[idx].difference.minutes}. Секунд: ${arr[idx].difference.seconds}`;
+
+        })
+      }, 1000
+    )
+    
+  }
+}
+
 
 takeDate.onclick = () => {
   if(dateValue.value.length === 0) dateResult.textContent='Введите, пожалуйста, дату'; //проверка, введена ли дата
   else {
-    const newTimer = new Event(dateValue.value) //ДОБАВИТЬ ВОЗМОЖНОСТЬ ДОБАВЛЯТЬ ВРЕМЯ
-    renderEvent(newTimer);
-    dateValue.value = '';
-    dateValue.reset();
+    // const newTimer = new Event(dateValue.value, timeValue.value);
+    events.push( new Event(dateValue.value, timeValue.value) )
+
+    dateValue.value = ''; //обнуляем значение поле поссле нажатия на кнопку
+    timeValue.value = '';
   }
 }
 
-const newTimer = new Event('2020-08-08');
-renderEvent(newTimer)
 
-const newTimer2 = new Event('2022-08-08', '11:30:30');
-renderEvent(newTimer2)
+renderEvents(events)

@@ -3,6 +3,7 @@ const c = console.log;
 const dateValue = document.getElementById('date-value'); //поле ввода даты
 const takeDate = document.getElementById('take-date'); //кнопка получить дату
 const dateResult = document.getElementById('date-result'); //блок с разницей по дням
+const noDate = document.getElementById('no-date'); //сюда запишется сообщение о необходимости ввести дату
 const checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 const timeValue = document.getElementById('input-time'); //поле ввода времени
 
@@ -99,7 +100,8 @@ const renderEvents = (arr) => {
     setInterval(
       () => {
         arr.forEach((event, idx)=> {
-          event.difference=event.countDownTimer(event.difference.ms);
+
+          event.difference=event.countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
 
           arrForDiv[idx].textContent = `Разница между датами. Лет: ${arr[idx].difference.years}. Месяцев: ${arr[idx].difference.mounths}. Дней: ${arr[idx].difference.days}. Часов: ${arr[idx].difference.hours}. Минут: ${arr[idx].difference.minutes}. Секунд: ${arr[idx].difference.seconds}`;
 
@@ -111,14 +113,21 @@ const renderEvents = (arr) => {
 }
 
 
+const addNewEventInArray = (arr, event) => {
+  arr.push(event); //запушили в старый массив новый элемент\событие
+  dateResult.textContent=null; //обнулили ВСЁ(!), что отображалось до этого
+  renderEvents(arr); //снова отрендерили это всё
+}
+
 takeDate.onclick = () => {
-  if(dateValue.value.length === 0) dateResult.textContent='Введите, пожалуйста, дату'; //проверка, введена ли дата
+  if(dateValue.value.length === 0) noDate.textContent='Введите, пожалуйста, дату'; //проверка, введена ли дата
   else {
-    // const newTimer = new Event(dateValue.value, timeValue.value);
-    events.push( new Event(dateValue.value, timeValue.value) )
+    // events.push( new Event(dateValue.value, timeValue.value) )
+    addNewEventInArray(events, new Event(dateValue.value, timeValue.value))
 
     dateValue.value = ''; //обнуляем значение поле поссле нажатия на кнопку
     timeValue.value = '';
+    noDate.textContent='';
   }
 }
 

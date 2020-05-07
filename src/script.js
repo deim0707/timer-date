@@ -10,9 +10,9 @@ const dateResult = document.getElementById('date-result'); //блок с раз�
 const checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 
 //делает информационное сообщение на 4 секунду
-const makeInfoMessage = (message) => {
-  info.innerHTML=`<b> ${message} </b>`;
-  setTimeout( () => info.innerHTML=null, 4000)
+const makeInfoMessage = (message, delay) => {
+  info.innerHTML+=`<div><b> ${message} </b></div>`;
+  setTimeout( () => info.innerHTML=null, delay)
 }
 
 //функция для разблокировки кнопки Пуск, когда ввели Дату и Имя события
@@ -85,8 +85,12 @@ let events = [
   new Event('Начало лето', '2020-06-01', '11:30:30'),
 ];
 
+// const deleteItem = (itemIndex) => {
+//   events.splice(itemIndex, 1)
+// }
+
 const renderEvents = (arr) => {
-  if (arr.length === 0) c('Список событий пуст');
+  if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000)
 
   else {
     let arrForDiv = []; //массив, где будут лежать результаты createElement
@@ -103,7 +107,7 @@ const renderEvents = (arr) => {
       ${arr[idx].difference.days !==0 ? arr[idx].difference.days + ' дней,' : ''} 
       ${arr[idx].difference.hours !==0 ? arr[idx].difference.hours + ' часов,' : ''} 
       ${arr[idx].difference.minutes !==0 ? arr[idx].difference.minutes + ' минут,' : ''} 
-      ${arr[idx].difference.seconds !==0 ? arr[idx].difference.seconds + ' секунд,' : ''} 
+      ${arr[idx].difference.seconds !==0 ? arr[idx].difference.seconds + ' секунд' : ''} 
       `;  
 
       dateResult.appendChild(arrForDiv[idx]); //вставляем на страницу
@@ -125,7 +129,7 @@ const renderEvents = (arr) => {
             ${arr[idx].difference.days !==0 ? arr[idx].difference.days + ' дней,' : ''} 
             ${arr[idx].difference.hours !==0 ? arr[idx].difference.hours + ' часов,' : ''} 
             ${arr[idx].difference.minutes !==0 ? arr[idx].difference.minutes + ' минут,' : ''} 
-            ${arr[idx].difference.seconds !==0 ? arr[idx].difference.seconds + ' секунд,' : ''} 
+            ${arr[idx].difference.seconds !==0 ? arr[idx].difference.seconds + ' секунд' : ''} 
             `;
           }
 
@@ -146,8 +150,10 @@ const addNewEventInArray = (arr, event) => {
   renderEvents(arr); //снова отрендерили это всё
 }
 
+renderEvents(events)
+
 makeDate.onclick = () => {
-  if( +(new Date(dateValue.value)) < +(new Date()) ) makeInfoMessage('Введите дату, которая ещё не прошла')
+  if( +(new Date(dateValue.value)) < +(new Date()) ) makeInfoMessage('Введите дату, которая ещё не прошла', 4000)
   else addNewEventInArray(events, new Event(nameValue.value, dateValue.value, timeValue.value))
   
   dateValue.value = null; //обнуляем значение поле поссле нажатия на кнопку
@@ -155,5 +161,3 @@ makeDate.onclick = () => {
   nameValue.value = null;
   makeDate.disabled = true;
 }
-
-renderEvents(events)

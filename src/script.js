@@ -4,17 +4,23 @@ const dateValue = document.getElementById('date-value'); //поле ввода �
 const nameValue = document.getElementById('name-value'); //поле ввода даты
 const timeValue = document.getElementById('input-time'); //поле ввода времени
 const info = document.getElementById('info'); //поле ввода времени
-const takeDate = document.getElementById('take-date'); //кнопка Пуск
+const makeDate = document.getElementById('take-date'); //кнопка Пуск
 
 const dateResult = document.getElementById('date-result'); //блок с разницей по дням
 const checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
+
+//делает информационное сообщение на 4 секунду
+const makeInfoMessage = (message) => {
+  info.innerHTML=`<b> ${message} </b>`;
+  setTimeout( () => info.innerHTML=null, 4000)
+}
 
 //функция для разблокировки кнопки Пуск, когда ввели Дату и Имя события
 const checkContent = (...args) => {
   args.forEach( arg =>{
     arg.oninput = () => {
       if(dateValue.value.length && nameValue.value.length) {
-        takeDate.disabled = false;
+        makeDate.disabled = false;
       }
     }
   })
@@ -67,7 +73,7 @@ class Event extends EventHelpers {
     this.dateNow = new Date();
     this.difference = this.timeFormatter(this.newDate-this.dateNow); //рассчитали разницу между датами в днях
   }
-
+  
   static get counter() { //счётчик для id
     Event._counter = (Event._counter || 0) + 1;
     return Event._counter;
@@ -77,7 +83,6 @@ class Event extends EventHelpers {
 let events = [
   new Event('Новый год', '2020-12-31'),
   new Event('Начало лето', '2020-06-01', '11:30:30'),
-  new Event('1 июля', '2020-07-01', '11:30:50')
 ];
 
 const renderEvents = (arr) => {
@@ -89,7 +94,17 @@ const renderEvents = (arr) => {
     arr.forEach( (event, idx) => {
       arrForDiv.push(document.createElement('p')); //создаём для каждого элемента массива тэг
 
-      arrForDiv[idx].textContent = `Событие: ${arr[idx].name}. До него:  ${arr[idx].difference.years} лет, ${arr[idx].difference.mounths} месяцев, ${arr[idx].difference.days} дней, ${arr[idx].difference.hours} часов, ${arr[idx].difference.minutes} минут, ${arr[idx].difference.seconds} секунд`; //для каждого созданного тега делаем текстовое содержимое 
+      //для каждого созданного тега делаем текстовое содержимое
+      arrForDiv[idx].innerHTML = `
+      <b>Событие:</b> ${arr[idx].name}. 
+      <b>До него:</b>  
+      ${arr[idx].difference.years !== 0 ? arr[idx].difference.years + ' лет,' : ''}  
+      ${arr[idx].difference.mounths !==0 ? arr[idx].difference.mounths + ' месяцев,' : ''} 
+      ${arr[idx].difference.days !==0 ? arr[idx].difference.days + ' дней,' : ''} 
+      ${arr[idx].difference.hours !==0 ? arr[idx].difference.hours + ' часов,' : ''} 
+      ${arr[idx].difference.minutes !==0 ? arr[idx].difference.minutes + ' минут,' : ''} 
+      ${arr[idx].difference.seconds !==0 ? arr[idx].difference.seconds + ' секунд,' : ''} 
+      `;  
 
       dateResult.appendChild(arrForDiv[idx]); //вставляем на страницу
     })
@@ -102,7 +117,21 @@ const renderEvents = (arr) => {
           event.difference=event.countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
 
           if(arrForDiv[idx]) {
-            arrForDiv[idx].textContent = `Событие: ${arr[idx].name}. До него:  ${arr[idx].difference.years} лет, ${arr[idx].difference.mounths} месяцев, ${arr[idx].difference.days} дней, ${arr[idx].difference.hours} часов, ${arr[idx].difference.minutes} минут, ${arr[idx].difference.seconds} секунд`;
+            arrForDiv[idx].innerHTML = `
+            <b>Событие:</b> ${arr[idx].name}. 
+            <b>До него:</b>  
+            ${arr[idx].difference.years !== 0 ? arr[idx].difference.years + ' лет,' : ''}  
+            ${arr[idx].difference.mounths !==0 ? arr[idx].difference.mounths + ' месяцев,' : ''} 
+            ${arr[idx].difference.days !==0 ? arr[idx].difference.days + ' дней,' : ''} 
+            ${arr[idx].difference.hours !==0 ? arr[idx].difference.hours + ' часов,' : ''} 
+            ${arr[idx].difference.minutes !==0 ? arr[idx].difference.minutes + ' минут,' : ''} 
+            ${arr[idx].difference.seconds !==0 ? arr[idx].difference.seconds + ' секунд,' : ''} 
+            `;
+          }
+
+          //если таймер кончился
+          if(arr[idx].difference.ms<=0) {
+            arrForDiv[idx].innerHTML = `<b>Событие</b> ${arr[idx].name} достигнуто!`;
           }
         })
       }, 1000
@@ -117,13 +146,14 @@ const addNewEventInArray = (arr, event) => {
   renderEvents(arr); //снова отрендерили это всё
 }
 
-takeDate.onclick = () => {
-  addNewEventInArray(events, new Event(nameValue.value, dateValue.value, timeValue.value))
-
-  dateValue.value = ''; //обнуляем значение поле поссле нажатия на кнопку
-  timeValue.value = '';
-  noDate.textContent='';
+makeDate.onclick = () => {
+  if( +(new Date(dateValue.value)) < +(new Date()) ) makeInfoMessage('Введите дату, которая ещё не прошла')
+  else addNewEventInArray(events, new Event(nameValue.value, dateValue.value, timeValue.value))
   
+  dateValue.value = null; //обнуляем значение поле поссле нажатия на кнопку
+  timeValue.value = null;
+  nameValue.value = null;
+  makeDate.disabled = true;
 }
 
 renderEvents(events)

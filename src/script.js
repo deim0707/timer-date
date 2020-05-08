@@ -10,23 +10,6 @@ const checkboxTime = document.getElementById('checkbox-time'); //чекбокс,
 
 let interval; //переменная в общем поле видимости, которая позволит очистить интервал 
 
-//делает информационное сообщение на заданое кол-во мс
-const makeInfoMessage = (message, delay) => {
-  info.innerHTML+=`<div><b> ${message} </b></div>`;
-  setTimeout( () => info.innerHTML=null, delay)
-}
-
-//функция для разблокировки кнопки Пуск, когда ввели Дату и Имя события
-const checkContent = (...args) => {
-  args.forEach( arg =>{
-    arg.oninput = () => {
-      if(dateValue.value.length && nameValue.value.length) {
-        makeDate.disabled = false;
-      }
-    }
-  })
-}
-checkContent(dateValue, nameValue);
 
 //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
 checkboxTime.onchange = (event) => {
@@ -70,7 +53,7 @@ class Event extends EventHelpers {
     super();
     this._id = Event.counter;
     this.name = name;
-    this.newDate = new Date(`${date}T${time || '00:00:01'}`)
+    this.newDate = new Date(`${date}T${time || '00:00:00'}`)
     this.dateNow = new Date();
     this.difference = this.timeFormatter(this.newDate-this.dateNow); //рассчитали разницу между датами в днях
   }
@@ -87,41 +70,57 @@ let events = [
   new Event('8 мая 11:30', '2020-05-08', '11:30:30'),
 ];
 ////////
-localStorage.setItem('test', 1);
+const setToStorage = (...items) => items.forEach(item => localStorage.setItem(item._id, JSON.stringify(item)))
+
+const getEventFromStorage = (key) => JSON.parse(localStorage.getItem(key));
+
+const getArrayFromStorage = () => {
+  let arr = [];
+  for (let i = 0; i<localStorage.length; i++) {
+    let key = localStorage.key(i);
+    arr.push(
+      JSON.parse(
+        localStorage.getItem(key)
+      )
+    )
+  }
+  return arr;
+}
+
+
 
 /////////
 
 
-// const deleteItem = (itemIndex) => {
-//   events.splice(itemIndex, 1)
-// }
+//делает информационное сообщение на заданое кол-во мс
+const makeInfoMessage = (message, delay) => {
+  info.innerHTML+=`<div><b> ${message} </b></div>`;
+  setTimeout( () => info.innerHTML=null, delay)
+}
 
-const renderEventTemplate = (event, tense) => {
-  if (tense === 'present') {
-    return `
-    <b>Событие:</b> ${event.name}. 
-    <b>До него:</b>  
-    ${event.difference.years !== 0 ? event.difference.years + ' лет,' : ''}  
-    ${event.difference.mounths !==0 ? event.difference.mounths + ' месяцев,' : ''} 
-    ${event.difference.days !==0 ? event.difference.days + ' дней,' : ''} 
-    ${event.difference.hours !==0 ? event.difference.hours + ' часов,' : ''} 
-    ${event.difference.minutes !==0 ? event.difference.minutes + ' минут,' : ''} 
-    ${event.difference.seconds !==0 ? event.difference.seconds + ' секунд' : ''} 
-    `;
-  }
+//функция для разблокировки кнопки Пуск, когда ввели Дату и Имя события
+const checkContent = (...args) => {
+  args.forEach( arg =>{
+    arg.oninput = () => {
+      if(dateValue.value.length && nameValue.value.length) {
+        makeDate.disabled = false;
+      }
+    }
+  })
+}
+checkContent(dateValue, nameValue);
 
-  if (tense === 'future') {
-    return `
-    <b>Событие</b> ${event.name} <b>достигнуто!</b>
-    <b> C тех пор прошло: </b>
-    ${event.difference.years !== 0 ? event.difference.years + ' лет,' : ''}  
-    ${event.difference.mounths !==0 ? event.difference.mounths + ' месяцев,' : ''} 
-    ${event.difference.days !==0 ? event.difference.days + ' дней,' : ''} 
-    ${event.difference.hours !==0 ? event.difference.hours + ' часов,' : ''} 
-    ${event.difference.minutes !==0 ? event.difference.minutes + ' минут,' : ''} 
-    ${event.difference.seconds !==0 ? event.difference.seconds + ' секунд' : ''} 
-    `;
-  }
+const renderEventTemplate = (event, isPresent) => {
+  return `
+  <b>Событие:</b> ${event.name}. 
+  <b>${isPresent ? ' До него:' : 'C тех пор прошло:'}</b>   
+  ${event.difference.years !== 0 ? event.difference.years + ' лет,' : ''}  
+  ${event.difference.mounths !==0 ? event.difference.mounths + ' месяцев,' : ''} 
+  ${event.difference.days !==0 ? event.difference.days + ' дней,' : ''} 
+  ${event.difference.hours !==0 ? event.difference.hours + ' часов,' : ''} 
+  ${event.difference.minutes + ' минут,'} 
+  ${event.difference.seconds + ' секунд'} 
+  `;
 }
 
 const renderEvents = (arr) => {
@@ -133,33 +132,22 @@ const renderEvents = (arr) => {
     arr.forEach( (event, idx) => {
       arrForDiv.push(document.createElement('p')); //создаём для каждого элемента массива тэг
       //для каждого созданного тега делаем текстовое содержимое
-      if (arr[idx].difference.ms > 0 ) {
-        arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], 'present');
-      }
+      if (arr[idx].difference.ms > 0 ) arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], true);
       //если таймер кончился
-      if(arr[idx].difference.ms <= 0) {
-        arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], 'future');
-      }
-
+      if(arr[idx].difference.ms <= 0) arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], false);
       dateResult.appendChild(arrForDiv[idx]); //вставляем на страницу
-
     })
     //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
     interval = setInterval(
       () => {
         arr.forEach((event, idx)=> {
           event.difference=event.countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
-          if(arrForDiv[idx]) {
-            arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], 'present');
-          }
+          if(arrForDiv[idx]) arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], true);
           //если таймер кончился
-          if(arr[idx].difference.ms <= 0) {
-            arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], 'future');
-          }
+          if(arr[idx].difference.ms <= 0) arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], false);
         })
       }, 1000
     )
-
   }
 }
 

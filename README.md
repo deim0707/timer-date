@@ -1,4 +1,4 @@
-# <a href='https://deim0707.github.io/timer-date/project/index.html'>Посмотреть</a>
+# <a href='https://deim0707.github.io/timer-date/index.html'>Посмотреть</a>
 
 задание:
 Таймер обратного отсчета

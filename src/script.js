@@ -1,15 +1,16 @@
 const c = console.log;
 
-const dateValue = document.getElementById('date-value'); //поле ввода даты
-const nameValue = document.getElementById('name-value'); //поле ввода даты
+const dateValue = document.getElementById('date-value'); //поле ввода даты события
+const nameValue = document.getElementById('name-value'); //поле ввода имени события
 const timeValue = document.getElementById('input-time'); //поле ввода времени
-const info = document.getElementById('info'); //поле ввода времени
 const makeDate = document.getElementById('take-date'); //кнопка Пуск
-
-const dateResult = document.getElementById('date-result'); //блок с разницей по дням
+const dateResult = document.getElementById('date-result'); //сюда добавляем таймеры
+const info = document.getElementById('info'); //место, куда можно выводить информационные сообщения
 const checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 
-//делает информационное сообщение на 4 секунду
+let interval; //переменная в общем поле видимости, которая позволит очистить интервал 
+
+//делает информационное сообщение на заданое кол-во мс
 const makeInfoMessage = (message, delay) => {
   info.innerHTML+=`<div><b> ${message} </b></div>`;
   setTimeout( () => info.innerHTML=null, delay)
@@ -82,12 +83,46 @@ class Event extends EventHelpers {
 
 let events = [
   new Event('Новый год', '2020-12-31'),
-  new Event('Начало лето', '2020-06-01', '11:30:30'),
+  new Event('Начало летa', '2020-06-01', '11:30:30'),
+  new Event('8 мая 11:30', '2020-05-08', '11:30:30'),
 ];
+////////
+localStorage.setItem('test', 1);
+
+/////////
+
 
 // const deleteItem = (itemIndex) => {
 //   events.splice(itemIndex, 1)
 // }
+
+const renderEventTemplate = (event, tense) => {
+  if (tense === 'present') {
+    return `
+    <b>Событие:</b> ${event.name}. 
+    <b>До него:</b>  
+    ${event.difference.years !== 0 ? event.difference.years + ' лет,' : ''}  
+    ${event.difference.mounths !==0 ? event.difference.mounths + ' месяцев,' : ''} 
+    ${event.difference.days !==0 ? event.difference.days + ' дней,' : ''} 
+    ${event.difference.hours !==0 ? event.difference.hours + ' часов,' : ''} 
+    ${event.difference.minutes !==0 ? event.difference.minutes + ' минут,' : ''} 
+    ${event.difference.seconds !==0 ? event.difference.seconds + ' секунд' : ''} 
+    `;
+  }
+
+  if (tense === 'future') {
+    return `
+    <b>Событие</b> ${event.name} <b>достигнуто!</b>
+    <b> C тех пор прошло: </b>
+    ${event.difference.years !== 0 ? event.difference.years + ' лет,' : ''}  
+    ${event.difference.mounths !==0 ? event.difference.mounths + ' месяцев,' : ''} 
+    ${event.difference.days !==0 ? event.difference.days + ' дней,' : ''} 
+    ${event.difference.hours !==0 ? event.difference.hours + ' часов,' : ''} 
+    ${event.difference.minutes !==0 ? event.difference.minutes + ' минут,' : ''} 
+    ${event.difference.seconds !==0 ? event.difference.seconds + ' секунд' : ''} 
+    `;
+  }
+}
 
 const renderEvents = (arr) => {
   if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000)
@@ -97,68 +132,48 @@ const renderEvents = (arr) => {
 
     arr.forEach( (event, idx) => {
       arrForDiv.push(document.createElement('p')); //создаём для каждого элемента массива тэг
-
       //для каждого созданного тега делаем текстовое содержимое
-      arrForDiv[idx].innerHTML = `
-      <b>Событие:</b> ${arr[idx].name}. 
-      <b>До него:</b>  
-      ${arr[idx].difference.years !== 0 ? arr[idx].difference.years + ' лет,' : ''}  
-      ${arr[idx].difference.mounths !==0 ? arr[idx].difference.mounths + ' месяцев,' : ''} 
-      ${arr[idx].difference.days !==0 ? arr[idx].difference.days + ' дней,' : ''} 
-      ${arr[idx].difference.hours !==0 ? arr[idx].difference.hours + ' часов,' : ''} 
-      ${arr[idx].difference.minutes !==0 ? arr[idx].difference.minutes + ' минут,' : ''} 
-      ${arr[idx].difference.seconds !==0 ? arr[idx].difference.seconds + ' секунд' : ''} 
-      `;  
+      if (arr[idx].difference.ms > 0 ) {
+        arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], 'present');
+      }
+      //если таймер кончился
+      if(arr[idx].difference.ms <= 0) {
+        arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], 'future');
+      }
 
       dateResult.appendChild(arrForDiv[idx]); //вставляем на страницу
-    })
 
+    })
     //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
-    setInterval(
+    interval = setInterval(
       () => {
         arr.forEach((event, idx)=> {
-
           event.difference=event.countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
-
           if(arrForDiv[idx]) {
-            arrForDiv[idx].innerHTML = `
-            <b>Событие:</b> ${arr[idx].name}. 
-            <b>До него:</b>  
-            ${arr[idx].difference.years !== 0 ? arr[idx].difference.years + ' лет,' : ''}  
-            ${arr[idx].difference.mounths !==0 ? arr[idx].difference.mounths + ' месяцев,' : ''} 
-            ${arr[idx].difference.days !==0 ? arr[idx].difference.days + ' дней,' : ''} 
-            ${arr[idx].difference.hours !==0 ? arr[idx].difference.hours + ' часов,' : ''} 
-            ${arr[idx].difference.minutes !==0 ? arr[idx].difference.minutes + ' минут,' : ''} 
-            ${arr[idx].difference.seconds !==0 ? arr[idx].difference.seconds + ' секунд' : ''} 
-            `;
+            arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], 'present');
           }
-
           //если таймер кончился
-          if(arr[idx].difference.ms<=0) {
-            arrForDiv[idx].innerHTML = `<b>Событие</b> ${arr[idx].name} достигнуто!`;
+          if(arr[idx].difference.ms <= 0) {
+            arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], 'future');
           }
         })
       }, 1000
     )
-    
+
   }
 }
 
 const addNewEventInArray = (arr, event) => {
   arr.push(event); //запушили в старый массив новый элемент\событие
-  dateResult.textContent=null; //обнулили ВСЁ(!), что отображалось до этого
+  dateResult.textContent=null; //обнулили всё, что отображалось до этого
+  clearTimeout(interval)
   renderEvents(arr); //снова отрендерили это всё
 }
 
 renderEvents(events)
 
 makeDate.onclick = () => {
-  if( +(new Date(`${dateValue.value}T${timeValue.value || '00:00:01'}`)) < +(new Date()) ) {
-    makeInfoMessage('Введите дату, которая ещё не прошла', 4000)
-    c(new Date(dateValue.value))
-    c(new Date())
-  }
-  else addNewEventInArray(events, new Event(nameValue.value, dateValue.value, timeValue.value))
+  addNewEventInArray(events, new Event(nameValue.value, dateValue.value, timeValue.value))
   
   // dateValue.value = null; //обнуляем значение поле поссле нажатия на кнопку
   // timeValue.value = null;

@@ -153,11 +153,15 @@ const addNewEventInArray = (arr, event) => {
 renderEvents(events)
 
 makeDate.onclick = () => {
-  if( +(new Date(dateValue.value)) < +(new Date()) ) makeInfoMessage('Введите дату, которая ещё не прошла', 4000)
+  if( +(new Date(`${dateValue.value}T${timeValue.value || '00:00:01'}`)) < +(new Date()) ) {
+    makeInfoMessage('Введите дату, которая ещё не прошла', 4000)
+    c(new Date(dateValue.value))
+    c(new Date())
+  }
   else addNewEventInArray(events, new Event(nameValue.value, dateValue.value, timeValue.value))
   
-  dateValue.value = null; //обнуляем значение поле поссле нажатия на кнопку
-  timeValue.value = null;
-  nameValue.value = null;
-  makeDate.disabled = true;
+  // dateValue.value = null; //обнуляем значение поле поссле нажатия на кнопку
+  // timeValue.value = null;
+  // nameValue.value = null;
+  // makeDate.disabled = true;
 }

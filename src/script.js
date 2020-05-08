@@ -60,14 +60,18 @@ class Event {
 
 
 const setToStorage = (key, arrWithItems) => localStorage.setItem(key, JSON.stringify(arrWithItems))
+const addToStorage = (key, item) => setToStorage(key, [...getEventFromStorage(key), item])
+
 const getEventFromStorage = (key) => JSON.parse(localStorage.getItem(key));
 
-localStorage.clear()
-setToStorage('events', [
-  new Event('Новый год', '2020-12-31'),
-  new Event('Начало летa', '2020-06-01', '11:30:30'),
-  new Event('8 мая 11:30', '2020-05-08', '11:30:30')
-])
+// localStorage.clear()
+if (localStorage.length===0) {
+  setToStorage('events', [
+    new Event('Новый год', '2020-12-31'),
+    new Event('Начало летa', '2020-06-01', '11:30:30'),
+    new Event('8 мая 11:30', '2020-05-08', '11:30:30')
+  ])
+}
 
 //делает информационное сообщение на заданое кол-во мс
 const makeInfoMessage = (message, delay) => {
@@ -132,7 +136,7 @@ const renderEvents = (arr) => {
 }
 
 const addNewEventInArray = (event) => {
-  setToStorage('events', [...getEventFromStorage('events'), event])
+  addToStorage('events', event)
   dateResult.textContent=null;
   clearTimeout(interval)
   renderEvents(getEventFromStorage('events')); //снова отрендерили это всё

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="src/style.css">
+    <title>Timer date</title>
+</head>
+<body>
+    <h1>Таймер по датам</h1>
+
+  
+    <div class="inputDate-wrapper">
+        <label for="date-value">Дата события:</label>
+        <input type="date" id="date-value" name="date-value">
+
+        <label for="name-value">Имя события:</label>
+        <input type="text" id="name-value" name="name-value">
+
+        <button id="take-date" disabled="true">Пуск</button>
+    </div>
+
+    <div class="input-time-wrapper">
+        <span>Ввести точное время:</span>
+        <input id="checkbox-time" type="checkbox">
+        <input id="input-time" type="time" class="hidden">
+    </div>
+
+    <div id="info"></div>
+    <div id="date-result"></div>
+
+
+
+<script src="src/script.js"></script>
+</body>
+</html>

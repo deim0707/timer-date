@@ -16,81 +16,58 @@ checkboxTime.onchange = (event) => {
   event.target.checked === false ? timeValue.classList.add('hidden') : timeValue.classList.remove('hidden');
 }
 
-class EventHelpers {
-  //приводит дату к годам, месяцам, дням, минутам, секундам
-  timeFormatter = (date) => {
-    const ms = date;
-    let delta = Math.abs(date) / 1000; //переводит дату в секунды
-    const years = Math.floor(delta / 31536000); //сколько лет влазит в это кол-во секунд
-    delta -= years * 31536000; //получаем остаток секунд, вычитая из него кол-во милисекунд в целых годах
-    const mounths = Math.floor(delta / 2592000); //сколько месяцев влазит в остаток милисекунд после подсчёта Года
-    delta -= mounths * 2592000;
-    const days = Math.floor(delta / 86400);
-    delta -= days * 86400;
-    const hours = Math.floor(delta / 3600) % 24;
-    delta -= hours * 3600;
-    const minutes = Math.floor(delta / 60) % 60;
-    delta -= minutes * 60;
-    const seconds = Math.floor(delta % 60);  
-    return { 
-      years: years,
-      mounths: mounths,
-      days: days,
-      hours: hours,
-      minutes: minutes,
-      seconds: seconds,
-      ms: ms
-    }
-  }
-  //таймер обратного отсчёта даты
-  countDownTimer = (date) => {
-    return this.timeFormatter(date-1000)
+const timeFormatter = (date) => {
+  const ms = date;
+  let delta = Math.abs(date) / 1000; //переводит дату в секунды
+  const years = Math.floor(delta / 31536000); //сколько лет влазит в это кол-во секунд
+  delta -= years * 31536000; //получаем остаток секунд, вычитая из него кол-во милисекунд в целых годах
+  const mounths = Math.floor(delta / 2592000); //сколько месяцев влазит в остаток милисекунд после подсчёта Года
+  delta -= mounths * 2592000;
+  const days = Math.floor(delta / 86400);
+  delta -= days * 86400;
+  const hours = Math.floor(delta / 3600) % 24;
+  delta -= hours * 3600;
+  const minutes = Math.floor(delta / 60) % 60;
+  delta -= minutes * 60;
+  const seconds = Math.floor(delta % 60);  
+  return { 
+    years: years,
+    mounths: mounths,
+    days: days,
+    hours: hours,
+    minutes: minutes,
+    seconds: seconds,
+    ms: ms
   }
 }
+//таймер обратного отсчёта даты
+const countDownTimer = (date) => timeFormatter(date-1000);
 
-class Event extends EventHelpers {
+class Event {
   constructor (name, date, time) {
-    super();
     this._id = Event.counter;
     this.name = name;
     this.newDate = new Date(`${date}T${time || '00:00:00'}`)
     this.dateNow = new Date();
-    this.difference = this.timeFormatter(this.newDate-this.dateNow); //рассчитали разницу между датами в днях
+    this.difference = timeFormatter(this.newDate-this.dateNow); //рассчитали разницу между датами в днях
   }
-  
+
   static get counter() { //счётчик для id
     Event._counter = (Event._counter || 0) + 1;
     return Event._counter;
   }
 }
 
-let events = [
-  new Event('Новый год', '2020-12-31'),
-  new Event('Начало летa', '2020-06-01', '11:30:30'),
-  new Event('8 мая 11:30', '2020-05-08', '11:30:30'),
-];
-////////
-const setToStorage = (...items) => items.forEach(item => localStorage.setItem(item._id, JSON.stringify(item)))
 
+const setToStorage = (key, arrWithItems) => localStorage.setItem(key, JSON.stringify(arrWithItems))
 const getEventFromStorage = (key) => JSON.parse(localStorage.getItem(key));
 
-const getArrayFromStorage = () => {
-  let arr = [];
-  for (let i = 0; i<localStorage.length; i++) {
-    let key = localStorage.key(i);
-    arr.push(
-      JSON.parse(
-        localStorage.getItem(key)
-      )
-    )
-  }
-  return arr;
-}
-
-
-
-/////////
-
+localStorage.clear()
+setToStorage('events', [
+  new Event('Новый год', '2020-12-31'),
+  new Event('Начало летa', '2020-06-01', '11:30:30'),
+  new Event('8 мая 11:30', '2020-05-08', '11:30:30')
+])
 
 //делает информационное сообщение на заданое кол-во мс
 const makeInfoMessage = (message, delay) => {
@@ -125,43 +102,46 @@ const renderEventTemplate = (event, isPresent) => {
 
 const renderEvents = (arr) => {
   if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000)
-
   else {
-    let arrForDiv = []; //массив, где будут лежать результаты createElement
-
+    let arrForTeg = []; //массив, где будут лежать результаты createElement
+    
     arr.forEach( (event, idx) => {
-      arrForDiv.push(document.createElement('p')); //создаём для каждого элемента массива тэг
+      arrForTeg.push(document.createElement('p')); //создаём для каждого элемента массива тэг
       //для каждого созданного тега делаем текстовое содержимое
-      if (arr[idx].difference.ms > 0 ) arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], true);
+      if (arr[idx].difference.ms > 0 ) arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], true);
       //если таймер кончился
-      if(arr[idx].difference.ms <= 0) arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], false);
-      dateResult.appendChild(arrForDiv[idx]); //вставляем на страницу
+      if(arr[idx].difference.ms <= 0) arrForTeg[idx].innerHTML = arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], false);
+      dateResult.appendChild(arrForTeg[idx]); //вставляем на страницу
     })
     //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
     interval = setInterval(
       () => {
-        arr.forEach((event, idx)=> {
-          event.difference=event.countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
-          if(arrForDiv[idx]) arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], true);
+        arr.forEach((event, idx) => {
+          // c(event)
+          // c(event.countDownTimer)
+          event.difference=countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
+
+          // event.difference=event.countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
+          if(arrForTeg[idx]) arrForTeg[idx].innerHTML = arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], true);
           //если таймер кончился
-          if(arr[idx].difference.ms <= 0) arrForDiv[idx].innerHTML = arrForDiv[idx].innerHTML = renderEventTemplate(arr[idx], false);
+          if(arr[idx].difference.ms <= 0) arrForTeg[idx].innerHTML = arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], false);
         })
       }, 1000
     )
   }
 }
 
-const addNewEventInArray = (arr, event) => {
-  arr.push(event); //запушили в старый массив новый элемент\событие
-  dateResult.textContent=null; //обнулили всё, что отображалось до этого
+const addNewEventInArray = (event) => {
+  setToStorage('events', [...getEventFromStorage('events'), event])
+  dateResult.textContent=null;
   clearTimeout(interval)
-  renderEvents(arr); //снова отрендерили это всё
+  renderEvents(getEventFromStorage('events')); //снова отрендерили это всё
 }
 
-renderEvents(events)
+renderEvents(getEventFromStorage('events'))
 
 makeDate.onclick = () => {
-  addNewEventInArray(events, new Event(nameValue.value, dateValue.value, timeValue.value))
+  addNewEventInArray(new Event(nameValue.value, dateValue.value, timeValue.value))
   
   // dateValue.value = null; //обнуляем значение поле поссле нажатия на кнопку
   // timeValue.value = null;

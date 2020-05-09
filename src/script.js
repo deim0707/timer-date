@@ -67,7 +67,7 @@ class Event {
     this.difference = timeFormatter(this.newDate-this.dateNow); //рассчитали разницу между датами в днях
   }
 
-  static get counter() { //счётчик для id
+  static get counter() { //счётчик для id //доработать
     Event._counter = (Event._counter || 0) + 1;
     return Event._counter;
   }
@@ -99,6 +99,7 @@ const renderEventTemplate = (event, isPresent) => {
   `;
 }
 const renderEvents = (arr) => {
+  // c(arr)
   if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000)
   else {
     let arrForTeg = []; //массив, где будут лежать результаты createElement
@@ -120,35 +121,20 @@ const renderEvents = (arr) => {
           //если таймер кончился
           if(arr[idx].difference.ms <= 0) arrForTeg[idx].innerHTML = arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], false);
         })
+        // c('интервал сработал')
       }, 1000
     )
   }
 }
-// const deleteEventFromRender = (key, id) => {
-//   let arr = getEventFromStorage(key);
-//   c(arr)
-//   let arr2 = arr.filter(item => item._id !== id);
-//   c(arr)
-//   clearTimeout(interval)
-//   dateResult.textContent=null;
-//   setToStorage(key, arr2);
-//   renderEvents(getEventFromStorage('events'))
-// }
-// deleteEventFromRender('events', 2)
-
 const addNewEventInRender = (event) => {
   addToStorage('events', event)
   dateResult.textContent=null;
-  clearTimeout(interval)
+  clearInterval(interval);
   renderEvents(getEventFromStorage('events')); //снова отрендерили это всё
 }
 renderEvents(getEventFromStorage('events'))
 
 makeDate.onclick = () => {
   addNewEventInRender(new Event(nameValue.value, dateValue.value, timeValue.value))
-  
-  // dateValue.value = null; //обнуляем значение поле поссле нажатия на кнопку
-  // timeValue.value = null;
-  // nameValue.value = null;
-  // makeDate.disabled = true;
+  makeDate.disabled = true;
 }

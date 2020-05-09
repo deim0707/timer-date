@@ -55,8 +55,6 @@ const timeFormatter = (date) => {
         ms: ms
     }
 };
-//таймер обратного отсчёта даты
-const countDownTimer = (date) => timeFormatter(date - 1000);
 
 class Event {
     constructor(name, date, time) {
@@ -65,10 +63,10 @@ class Event {
         this.newDate = new Date(`${date}T${time || '00:00:00'}`)
     }
 
-    static get counter() { //счётчик для id
-        Event._counter = (Event._counter || 0) + 1;
-        return Event._counter;
-    }
+  static get counter() { //счётчик для id
+    Event._counter = getEventFromStorage('events') ? getEventFromStorage('events').length + 1 : 1;
+    return Event._counter;
+  }
 }
 
 const setToStorage = (key, arrWithItems) => localStorage.setItem(key, JSON.stringify(arrWithItems));
@@ -77,11 +75,9 @@ const getEventFromStorage = (key) => JSON.parse(localStorage.getItem(key));
 // localStorage.clear()
 // если localstorage пуст (запустили первый раз. то внесём в него 3 события)
 if (localStorage.length === 0) {
-    setToStorage('events', [
-        new Event('Новый год', '2020-12-31'),
-        new Event('Начало летa', '2020-06-01', '11:30:30'),
-        new Event('8 мая 11:30', '2020-05-08', '11:30:30')
-    ])
+  setToStorage('events', [new Event('Новый год', '2020-12-31')]);
+  addToStorage('events', new Event('Начало летa', '2020-06-01', '11:30:30'));
+  addToStorage('events', new Event('8 мая 11:30', '2020-05-08', '11:30:30'));
 }
 
 const renderEventTemplate = (nameEvent, eventDifference, isPresent) => {
@@ -97,7 +93,7 @@ const renderEventTemplate = (nameEvent, eventDifference, isPresent) => {
   `;
 };
 const renderEvents = (arr) => {
-    // console.log(arr);
+    console.log(arr);
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000)
     else {
         let arrForTeg = []; //массив, где будут лежать результаты createElement
@@ -137,6 +133,14 @@ const addNewEventInRender = (event) => {
 };
 renderEvents(getEventFromStorage('events'));
 
+const deleteEventFromRender = (id) => {
+  let arr = getEventFromStorage('events');
+  c(arr)
+  arr.forEach(i => c(i._id))
+  // arr.filter(item => item._id !== id);
+  c(arr)
+};
+deleteEventFromRender(4);
 
 makeDate.onclick = () => {
     addNewEventInRender(new Event(nameValue.value, dateValue.value, timeValue.value));

@@ -10,11 +10,26 @@ const checkboxTime = document.getElementById('checkbox-time'); //чекбокс,
 
 let interval; //переменная в общем поле видимости, которая позволит очистить интервал 
 
-
+//делает информационное сообщение на заданое кол-во мс
+const makeInfoMessage = (message, delay) => {
+  info.innerHTML+=`<div><b> ${message} </b></div>`;
+  setTimeout( () => info.innerHTML=null, delay)
+}
 //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
 checkboxTime.onchange = (event) => {
   event.target.checked === false ? timeValue.classList.add('hidden') : timeValue.classList.remove('hidden');
 }
+//функция для разблокировки кнопки Пуск, когда ввели Дату и Имя события
+const checkContent = (...args) => {
+  args.forEach( arg =>{
+    arg.oninput = () => {
+      if(dateValue.value.length && nameValue.value.length) {
+        makeDate.disabled = false;
+      }
+    }
+  })
+}
+checkContent(dateValue, nameValue);
 
 const timeFormatter = (date) => {
   const ms = date;
@@ -58,38 +73,18 @@ class Event {
   }
 }
 
-
 const setToStorage = (key, arrWithItems) => localStorage.setItem(key, JSON.stringify(arrWithItems))
 const addToStorage = (key, item) => setToStorage(key, [...getEventFromStorage(key), item])
-
 const getEventFromStorage = (key) => JSON.parse(localStorage.getItem(key));
-
-// localStorage.clear()
-if (localStorage.length===0) {
+//если localstorage пуст (запустили первый раз. то внесём в него 3 события)
+if (localStorage.length===0) { 
   setToStorage('events', [
     new Event('Новый год', '2020-12-31'),
     new Event('Начало летa', '2020-06-01', '11:30:30'),
     new Event('8 мая 11:30', '2020-05-08', '11:30:30')
   ])
 }
-
-//делает информационное сообщение на заданое кол-во мс
-const makeInfoMessage = (message, delay) => {
-  info.innerHTML+=`<div><b> ${message} </b></div>`;
-  setTimeout( () => info.innerHTML=null, delay)
-}
-
-//функция для разблокировки кнопки Пуск, когда ввели Дату и Имя события
-const checkContent = (...args) => {
-  args.forEach( arg =>{
-    arg.oninput = () => {
-      if(dateValue.value.length && nameValue.value.length) {
-        makeDate.disabled = false;
-      }
-    }
-  })
-}
-checkContent(dateValue, nameValue);
+// localStorage.clear()
 
 const renderEventTemplate = (event, isPresent) => {
   return `
@@ -103,7 +98,6 @@ const renderEventTemplate = (event, isPresent) => {
   ${event.difference.seconds + ' секунд'} 
   `;
 }
-
 const renderEvents = (arr) => {
   if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000)
   else {
@@ -121,11 +115,7 @@ const renderEvents = (arr) => {
     interval = setInterval(
       () => {
         arr.forEach((event, idx) => {
-          // c(event)
-          // c(event.countDownTimer)
           event.difference=countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
-
-          // event.difference=event.countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
           if(arrForTeg[idx]) arrForTeg[idx].innerHTML = arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], true);
           //если таймер кончился
           if(arr[idx].difference.ms <= 0) arrForTeg[idx].innerHTML = arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], false);
@@ -134,18 +124,28 @@ const renderEvents = (arr) => {
     )
   }
 }
+// const deleteEventFromRender = (key, id) => {
+//   let arr = getEventFromStorage(key);
+//   c(arr)
+//   let arr2 = arr.filter(item => item._id !== id);
+//   c(arr)
+//   clearTimeout(interval)
+//   dateResult.textContent=null;
+//   setToStorage(key, arr2);
+//   renderEvents(getEventFromStorage('events'))
+// }
+// deleteEventFromRender('events', 2)
 
-const addNewEventInArray = (event) => {
+const addNewEventInRender = (event) => {
   addToStorage('events', event)
   dateResult.textContent=null;
   clearTimeout(interval)
   renderEvents(getEventFromStorage('events')); //снова отрендерили это всё
 }
-
 renderEvents(getEventFromStorage('events'))
 
 makeDate.onclick = () => {
-  addNewEventInArray(new Event(nameValue.value, dateValue.value, timeValue.value))
+  addNewEventInRender(new Event(nameValue.value, dateValue.value, timeValue.value))
   
   // dateValue.value = null; //обнуляем значение поле поссле нажатия на кнопку
   // timeValue.value = null;

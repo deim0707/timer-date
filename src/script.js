@@ -32,12 +32,12 @@ const checkContent = (...args) => {
 checkContent(dateValue, nameValue);
 
 const timeFormatter = (date) => {
-    const ms = date;
+    const ms = Number(date);
     let delta = Math.abs(date) / 1000; //переводит дату в секунды
     const years = Math.floor(delta / 31536000); //сколько лет влазит в это кол-во секунд
     delta -= years * 31536000; //получаем остаток секунд, вычитая из него кол-во милисекунд в целых годах
-    const mounths = Math.floor(delta / 2592000); //сколько месяцев влазит в остаток милисекунд после подсчёта Года
-    delta -= mounths * 2592000;
+    const months = Math.floor(delta / 2592000); //сколько месяцев влазит в остаток милисекунд после подсчёта Года
+    delta -= months * 2592000;
     const days = Math.floor(delta / 86400);
     delta -= days * 86400;
     const hours = Math.floor(delta / 3600) % 24;
@@ -47,7 +47,7 @@ const timeFormatter = (date) => {
     const seconds = Math.floor(delta % 60);
     return {
         years: years,
-        mounths: mounths,
+        months: months,
         days: days,
         hours: hours,
         minutes: minutes,
@@ -63,11 +63,9 @@ class Event {
         this._id = Event.counter;
         this.name = name;
         this.newDate = new Date(`${date}T${time || '00:00:00'}`)
-        this.dateNow = new Date();
-        this.difference = timeFormatter(this.newDate - this.dateNow); //рассчитали разницу между датами в днях
     }
 
-    static get counter() { //счётчик для id //доработать
+    static get counter() { //счётчик для id
         Event._counter = (Event._counter || 0) + 1;
         return Event._counter;
     }
@@ -76,7 +74,8 @@ class Event {
 const setToStorage = (key, arrWithItems) => localStorage.setItem(key, JSON.stringify(arrWithItems));
 const addToStorage = (key, item) => setToStorage(key, [...getEventFromStorage(key), item]);
 const getEventFromStorage = (key) => JSON.parse(localStorage.getItem(key));
-//если localstorage пуст (запустили первый раз. то внесём в него 3 события)
+// localStorage.clear()
+// если localstorage пуст (запустили первый раз. то внесём в него 3 события)
 if (localStorage.length === 0) {
     setToStorage('events', [
         new Event('Новый год', '2020-12-31'),
@@ -84,42 +83,46 @@ if (localStorage.length === 0) {
         new Event('8 мая 11:30', '2020-05-08', '11:30:30')
     ])
 }
-// localStorage.clear()
 
-const renderEventTemplate = (event, isPresent) => {
+const renderEventTemplate = (nameEvent, eventDifference, isPresent) => {
     return `
-  <b>Событие:</b> ${event.name}. 
+  <b>Событие:</b> ${nameEvent}. 
   <b>${isPresent ? ' До него:' : 'C тех пор прошло:'}</b>   
-  ${event.difference.years !== 0 ? event.difference.years + ' лет,' : ''}  
-  ${event.difference.mounths !== 0 ? event.difference.mounths + ' месяцев,' : ''} 
-  ${event.difference.days !== 0 ? event.difference.days + ' дней,' : ''} 
-  ${event.difference.hours !== 0 ? event.difference.hours + ' часов,' : ''} 
-  ${event.difference.minutes + ' минут,'} 
-  ${event.difference.seconds + ' секунд'} 
+  ${eventDifference.years !== 0 ? eventDifference.years + ' лет,' : ''}  
+  ${eventDifference.months !== 0 ? eventDifference.months + ' месяцев,' : ''} 
+  ${eventDifference.days !== 0 ? eventDifference.days + ' дней,' : ''} 
+  ${eventDifference.hours !== 0 ? eventDifference.hours + ' часов,' : ''} 
+  ${eventDifference.minutes + ' минут,'} 
+  ${eventDifference.seconds + ' секунд'} 
   `;
 };
 const renderEvents = (arr) => {
-    // console.log(arr)
+    // console.log(arr);
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000)
     else {
         let arrForTeg = []; //массив, где будут лежать результаты createElement
 
         arr.forEach((event, idx) => {
             arrForTeg.push(document.createElement('p')); //создаём для каждого элемента массива тэг
+            let itemDifference = timeFormatter(new Date(event.newDate) - new Date()); //каждую секунду пересчитывается разница во времени между заданной датой и нынешней
+
             //для каждого созданного тега делаем текстовое содержимое
-            if (arr[idx].difference.ms > 0) arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], true);
+            if (itemDifference.ms > 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
             //если таймер кончился
-            if (arr[idx].difference.ms <= 0) arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], false);
+            if (itemDifference.ms <= 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
+
             dateResult.appendChild(arrForTeg[idx]); //вставляем на страницу
         });
         //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
         interval = setInterval(
             () => {
                 arr.forEach((event, idx) => {
-                    event.difference = countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
-                    if (arrForTeg[idx]) arrForTeg[idx].innerHTML = arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], true);
+                    let itemDifference = timeFormatter((new Date(event.newDate) - 1000) - new Date());
+
+                    // event.difference = countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
+                    if (itemDifference.ms > 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
                     //если таймер кончился
-                    if (arr[idx].difference.ms <= 0) arrForTeg[idx].innerHTML = renderEventTemplate(arr[idx], false);
+                    if (itemDifference.ms <= 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
                 })
                 // console.log('интервал сработал')
             }, 1000
@@ -132,7 +135,8 @@ const addNewEventInRender = (event) => {
     clearInterval(interval);
     renderEvents(getEventFromStorage('events')); //снова отрендерили это всё
 };
-renderEvents(getEventFromStorage('events'))
+renderEvents(getEventFromStorage('events'));
+
 
 makeDate.onclick = () => {
     addNewEventInRender(new Event(nameValue.value, dateValue.value, timeValue.value));

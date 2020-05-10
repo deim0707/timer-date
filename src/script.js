@@ -142,7 +142,7 @@ const deleteEventFromRender = (key, id) => {
     clearInterval(interval);
     renderEvents(getEventFromStorage(key));
 };
-// deleteEventFromRender('events',4);
+// deleteEventFromRender('events',3);
 
 makeDate.onclick = () => {
     addNewEventInRender(new Event(nameValue.value, dateValue.value, timeValue.value));

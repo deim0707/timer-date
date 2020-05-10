@@ -7,11 +7,11 @@
     "browser-sync": "^2.26.7"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-loader": "^8.1.0",
-    "babel-preset-env": "^1.7.0",
-    "webpack": "^4.43.0",
-    "webpack-dev-server": "^3.11.0"
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.1",
+    "webpack": "^3.8.1",
+    "webpack-dev-server": "^2.9.4"
   },
   "scripts": {
     "start-BS": "browser-sync start --server --files \"*.html ,\"*.css ,\"*.js\"",

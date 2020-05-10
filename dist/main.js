@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "/dist/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -70,52 +70,43 @@
 "use strict";
 
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
+var setToStorage = exports.setToStorage = function setToStorage(key, arrWithItems) {
+  return localStorage.setItem(key, JSON.stringify(arrWithItems));
+};
+
+var addToStorage = exports.addToStorage = function addToStorage(key, item) {
+  return setToStorage(key, [].concat(_toConsumableArray(getEventFromStorage(key)), [item]));
+};
+
+var getEventFromStorage = exports.getEventFromStorage = function getEventFromStorage(key) {
+  return JSON.parse(localStorage.getItem(key));
+};
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Event = exports.timeFormatter = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _storage = __webpack_require__(0);
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var c = console.log;
-
-var dateValue = document.getElementById('date-value'); //поле ввода даты события
-var nameValue = document.getElementById('name-value'); //поле ввода имени события
-var timeValue = document.getElementById('input-time'); //поле ввода времени
-var makeDate = document.getElementById('take-date'); //кнопка Пуск
-var dateResult = document.getElementById('date-result'); //сюда добавляем таймеры
-var info = document.getElementById('info'); //место, куда можно выводить информационные сообщения
-var checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
-
-var interval = void 0; //переменная в общем поле видимости, которая позволит очистить интервал 
-
-//делает информационное сообщение на заданое кол-во мс
-var makeInfoMessage = function makeInfoMessage(message, delay) {
-    info.innerHTML += '<div><b> ' + message + ' </b></div>';
-    setTimeout(function () {
-        return info.innerHTML = null;
-    }, delay);
-};
-//происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
-checkboxTime.onchange = function (event) {
-    event.target.checked === false ? timeValue.classList.add('hidden') : timeValue.classList.remove('hidden');
-};
-//функция для разблокировки кнопки Пуск, когда ввели Дату и Имя события
-var checkContent = function checkContent() {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-    }
-
-    args.forEach(function (arg) {
-        arg.oninput = function () {
-            if (dateValue.value.length && nameValue.value.length) {
-                makeDate.disabled = false;
-            }
-        };
-    });
-};
-checkContent(dateValue, nameValue);
-
-var timeFormatter = function timeFormatter(date) {
+var timeFormatter = exports.timeFormatter = function timeFormatter(date) {
     var ms = Number(date);
     var delta = Math.abs(date) / 1000; //переводит дату в секунды
     var years = Math.floor(delta / 31536000); //сколько лет влазит в это кол-во секунд
@@ -140,7 +131,7 @@ var timeFormatter = function timeFormatter(date) {
     };
 };
 
-var Event = function () {
+var Event = exports.Event = function () {
     function Event(name, date, time) {
         _classCallCheck(this, Event);
 
@@ -153,7 +144,7 @@ var Event = function () {
         key: 'counter',
         get: function get() {
             //счётчик для id
-            Event._counter = getEventFromStorage('events') ? getEventFromStorage('events').length + 1 : 1;
+            Event._counter = (0, _storage.getEventFromStorage)('events') ? (0, _storage.getEventFromStorage)('events').length + 1 : 1;
             return Event._counter;
         }
     }]);
@@ -161,46 +152,118 @@ var Event = function () {
     return Event;
 }();
 
-var setToStorage = function setToStorage(key, arrWithItems) {
-    return localStorage.setItem(key, JSON.stringify(arrWithItems));
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _storage = __webpack_require__(0);
+
+var _render = __webpack_require__(3);
+
+var _event = __webpack_require__(1);
+
+var dateValue = document.getElementById('date-value'); //поле ввода даты события
+var nameValue = document.getElementById('name-value'); //поле ввода имени события
+var timeValue = document.getElementById('input-time'); //поле ввода времени
+var makeDate = document.getElementById('take-date'); //кнопка Пуск
+var dateResult = document.getElementById('date-result'); //сюда добавляем таймеры
+var info = document.getElementById('info'); //место, куда можно выводить информационные сообщения
+var checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
+
+var interval = void 0; //переменная в общем поле видимости, которая позволит очистить интервал 
+console.log('123ffffffffffffff');
+checkboxTime.onchange = function (event) {
+    //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
+    event.target.checked === false ? timeValue.classList.add('hidden') : timeValue.classList.remove('hidden');
 };
-var addToStorage = function addToStorage(key, item) {
-    return setToStorage(key, [].concat(_toConsumableArray(getEventFromStorage(key)), [item]));
-};
-var getEventFromStorage = function getEventFromStorage(key) {
-    return JSON.parse(localStorage.getItem(key));
-};
-// localStorage.clear()
-// если localstorage пуст (запустили первый раз. то внесём в него 3 события)
+
+(0, _render.checkContent)(makeDate, dateValue, nameValue);
+
 if (localStorage.length === 0) {
-    setToStorage('events', [new Event('Новый год', '2020-12-31')]);
-    addToStorage('events', new Event('Начало летa', '2020-06-01', '11:30:30'));
-    addToStorage('events', new Event('8 мая 11:30', '2020-05-08', '11:30:30'));
+    (0, _storage.setToStorage)('events', [new _event.Event('Новый год', '2020-12-31')]);
+    (0, _storage.addToStorage)('events', new _event.Event('Начало летa', '2020-06-01', '11:30:30'));
+    (0, _storage.addToStorage)('events', new _event.Event('8 мая 11:30', '2020-05-08', '11:30:30'));
 }
+
+(0, _render.renderEvents)((0, _storage.getEventFromStorage)('events'), dateResult, interval);
+
+makeDate.onclick = function () {
+    (0, _render.addNewEventInRender)(dateResult, interval, new _event.Event(nameValue.value, dateValue.value, timeValue.value));
+    dateValue.value = '';
+    nameValue.value = '';
+    timeValue.value = '';
+    makeDate.disabled = true;
+};
+
+// deleteEventFromRender(dateResult, interval, 'events',1)
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.deleteEventFromRender = exports.addNewEventInRender = exports.renderEvents = exports.checkContent = undefined;
+
+var _event = __webpack_require__(1);
+
+var _storage = __webpack_require__(0);
+
+//делает информационное сообщение на заданое кол-во мс
+var makeInfoMessage = function makeInfoMessage(message, delay, target) {
+    // info.innerHTML += `<div><b> ${message} </b></div>`;
+    // setTimeout(() => info.innerHTML = null, delay);
+    target.innerHTML += '<div><b> ' + message + ' </b></div>';
+    setTimeout(function () {
+        return target.innerHTML = null;
+    }, delay);
+};
+//функция для разблокировки кнопки Пуск, когда ввели Дату и Имя события
+var checkContent = exports.checkContent = function checkContent(target) {
+    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+    }
+
+    args.forEach(function (arg) {
+        arg.oninput = function () {
+            if (args[0].value.length && args[1].value.length) {
+                target.disabled = false;
+            }
+        };
+    });
+};
 
 var renderEventTemplate = function renderEventTemplate(nameEvent, eventDifference, isPresent) {
     return '\n  <b>\u0421\u043E\u0431\u044B\u0442\u0438\u0435:</b> ' + nameEvent + '. \n  <b>' + (isPresent ? ' До него:' : 'C тех пор прошло:') + '</b>   \n  ' + (eventDifference.years !== 0 ? eventDifference.years + ' лет,' : '') + '  \n  ' + (eventDifference.months !== 0 ? eventDifference.months + ' месяцев,' : '') + ' \n  ' + (eventDifference.days !== 0 ? eventDifference.days + ' дней,' : '') + ' \n  ' + (eventDifference.hours !== 0 ? eventDifference.hours + ' часов,' : '') + ' \n  ' + (eventDifference.minutes + ' минут,') + ' \n  ' + (eventDifference.seconds + ' секунд') + ' \n  ';
 };
-var renderEvents = function renderEvents(arr) {
-    console.log(arr);
+
+var renderEvents = exports.renderEvents = function renderEvents(arr, target, interval) {
+    // console.log(arr);
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000);else {
         var arrForTeg = []; //массив, где будут лежать результаты createElement
 
         arr.forEach(function (event, idx) {
             arrForTeg.push(document.createElement('p')); //создаём для каждого элемента массива тэг
-            var itemDifference = timeFormatter(new Date(event.newDate) - new Date()); //каждую секунду пересчитывается разница во времени между заданной датой и нынешней
+            var itemDifference = (0, _event.timeFormatter)(new Date(event.newDate) - new Date()); //каждую секунду пересчитывается разница во времени между заданной датой и нынешней
 
             //для каждого созданного тега делаем текстовое содержимое
             if (itemDifference.ms > 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
             //если таймер кончился
             if (itemDifference.ms <= 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
 
-            dateResult.appendChild(arrForTeg[idx]); //вставляем на страницу
+            target.appendChild(arrForTeg[idx]); //вставляем на страницу
         });
         //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
         interval = setInterval(function () {
             arr.forEach(function (event, idx) {
-                var itemDifference = timeFormatter(new Date(event.newDate) - 1000 - new Date());
+                var itemDifference = (0, _event.timeFormatter)(new Date(event.newDate) - 1000 - new Date());
 
                 // event.difference = countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
                 if (itemDifference.ms > 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
@@ -211,31 +274,23 @@ var renderEvents = function renderEvents(arr) {
         }, 1000);
     }
 };
-var addNewEventInRender = function addNewEventInRender(event) {
-    addToStorage('events', event);
-    dateResult.textContent = null;
-    clearInterval(interval);
-    renderEvents(getEventFromStorage('events')); //снова отрендерили это всё
-};
-renderEvents(getEventFromStorage('events'));
 
-var deleteEventFromRender = function deleteEventFromRender(key, id) {
-    setToStorage(key, getEventFromStorage(key).filter(function (item) {
+var addNewEventInRender = exports.addNewEventInRender = function addNewEventInRender(outputField, interval, event) {
+    (0, _storage.addToStorage)('events', event);
+    outputField.textContent = null;
+    clearInterval(interval);
+    renderEvents((0, _storage.getEventFromStorage)('events'), outputField, interval); //снова отрендерили это всё
+};
+
+var deleteEventFromRender = exports.deleteEventFromRender = function deleteEventFromRender(outputField, interval, key, id) {
+    (0, _storage.setToStorage)(key, (0, _storage.getEventFromStorage)(key).filter(function (item) {
         return item._id !== id;
     }));
-    dateResult.textContent = null;
+    outputField.textContent = null;
     clearInterval(interval);
-    renderEvents(getEventFromStorage(key));
+    renderEvents((0, _storage.getEventFromStorage)(key), outputField, interval);
 };
 // deleteEventFromRender('events',3);
-
-makeDate.onclick = function () {
-    addNewEventInRender(new Event(nameValue.value, dateValue.value, timeValue.value));
-    dateValue.value = '';
-    nameValue.value = '';
-    timeValue.value = '';
-    makeDate.disabled = true;
-};
 
 /***/ })
 /******/ ]);

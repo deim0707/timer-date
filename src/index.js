@@ -11,7 +11,6 @@ const info = document.getElementById('info'); //место, куда можно 
 const checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 
 let interval; //переменная в общем поле видимости, которая позволит очистить интервал 
-
 checkboxTime.onchange = (event) => {
     //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
     event.target.checked === false ? timeValue.classList.add('hidden') : timeValue.classList.remove('hidden');

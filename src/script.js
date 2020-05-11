@@ -65,11 +65,14 @@ class Event {
 
 	static get counter() {
 		//счётчик для id
+
+		// !!!тут поменял, не нужно ничего сумировать\сравнивать, можно либу ouid
 		Event._counter = Date.now();
 		return Event._counter;
 	}
 }
 const getEventFromStorage = (key) =>
+	// !!!изначально массива нет, и функция не выполянется, так как объект был неитерабелен
 	JSON.parse(localStorage.getItem(key)) === null ? [] : JSON.parse(localStorage.getItem(key));
 const setToStorage = (key, arrWithItems) => localStorage.setItem(key, JSON.stringify(arrWithItems));
 const addToStorage = (key, item) => setToStorage(key, [...getEventFromStorage(key), item]);
@@ -84,6 +87,8 @@ if (localStorage === null) {
 
 const renderEventTemplate = (nameEvent, eventDifference, isPresent, id) => {
 	return {
+		// !!!функция теперь возвращает объект
+		// с самим шаблоном
 		template: `
     <b>Событие:</b> ${nameEvent}. 
     <b>${isPresent ? ' До него:' : 'C тех пор прошло:'}</b>   
@@ -93,9 +98,14 @@ const renderEventTemplate = (nameEvent, eventDifference, isPresent, id) => {
     ${eventDifference.hours !== 0 ? eventDifference.hours + ' часов,' : ''} 
     ${eventDifference.minutes + ' минут,'} 
     ${eventDifference.seconds + ' секунд'} 
+
+
+
     <button id=${id.toString()}>Удолить событие</button>
     `,
+		// !!!присваиваем айди из класса, получаем его из аргумента
 		id,
+		// !!!возвращаем в объекте также сам айди, чтобы потом с ним работать
 	};
 };
 const renderEvents = (arr) => {
@@ -124,6 +134,7 @@ const renderEvents = (arr) => {
 		interval = setInterval(() => {
 			arr.forEach((event, idx) => {
 				let itemDifference = timeFormatter(new Date(event.newDate) - 1000 - new Date());
+				// !!!вот он наш объект с шаблоном и айди
 				let result = renderEventTemplate(event.name, itemDifference, true, event._id);
 				let deleteButtom = document.getElementById(result.id.toString());
 
@@ -131,8 +142,10 @@ const renderEvents = (arr) => {
 				if (itemDifference.ms > 0) {
 					arrForTeg[idx].innerHTML = '';
 					arrForTeg[idx].innerHTML = result.template;
+					// !!!получаем кнопку
 					deleteButtom = document.getElementById(result.id.toString());
 					deleteButtom.addEventListener('click', (e) => {
+						// !!!реализуем логику удаления, айди вытаксиваем из объекта
 						e.preventDefault();
 						dateResult.removeChild(arrForTeg[idx]);
 						arr = arr.filter((el) => el._id !== result.id);

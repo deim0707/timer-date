@@ -64,97 +64,78 @@ class Event {
 	}
 
 	static get counter() {
-		//счётчик для id
-
-		// !!!тут поменял, не нужно ничего сумировать\сравнивать, можно либу ouid
 		Event._counter = Date.now();
 		return Event._counter;
 	}
 }
-const getEventFromStorage = (key) =>
-	// !!!изначально массива нет, и функция не выполянется, так как объект был неитерабелен
-	JSON.parse(localStorage.getItem(key)) === null ? [] : JSON.parse(localStorage.getItem(key));
+const getEventFromStorage = (key) => JSON.parse(localStorage.getItem(key)) === null ? [] : JSON.parse(localStorage.getItem(key));
 const setToStorage = (key, arrWithItems) => localStorage.setItem(key, JSON.stringify(arrWithItems));
 const addToStorage = (key, item) => setToStorage(key, [...getEventFromStorage(key), item]);
 
 // localStorage.clear()
 // если localstorage пуст (запустили первый раз. то внесём в него 3 события)
+
 if (localStorage === null) {
+	setToStorage('events', [new Event('Новый год', '2020-12-31')]);
+	addToStorage('events', new Event('Начало летa', '2020-06-01', '11:30:30'));
+	// addToStorage('events', new Event('8 мая 11:30', '2020-05-08', '11:30:30'));
+}
+if (localStorage.length === 0) {
 	setToStorage('events', [new Event('Новый год', '2020-12-31')]);
 	addToStorage('events', new Event('Начало летa', '2020-06-01', '11:30:30'));
 	addToStorage('events', new Event('8 мая 11:30', '2020-05-08', '11:30:30'));
 }
 
-const renderEventTemplate = (nameEvent, eventDifference, isPresent, id) => {
-	return {
-		// !!!функция теперь возвращает объект
-		// с самим шаблоном
-		template: `
-    <b>Событие:</b> ${nameEvent}. 
-    <b>${isPresent ? ' До него:' : 'C тех пор прошло:'}</b>   
-    ${eventDifference.years !== 0 ? eventDifference.years + ' лет,' : ''}  
-    ${eventDifference.months !== 0 ? eventDifference.months + ' месяцев,' : ''} 
-    ${eventDifference.days !== 0 ? eventDifference.days + ' дней,' : ''} 
-    ${eventDifference.hours !== 0 ? eventDifference.hours + ' часов,' : ''} 
-    ${eventDifference.minutes + ' минут,'} 
-    ${eventDifference.seconds + ' секунд'} 
-
-
-
-    <button id=${id.toString()}>Удолить событие</button>
-    `,
-		// !!!присваиваем айди из класса, получаем его из аргумента
-		id,
-		// !!!возвращаем в объекте также сам айди, чтобы потом с ним работать
-	};
+const renderEventTemplate = (nameEvent, eventDifference, isPresent) => {
+	return `
+		<b>Событие:</b> ${nameEvent}. 
+		<b>${isPresent ? ' До него:' : 'C тех пор прошло:'}</b>   
+		${eventDifference.years !== 0 ? eventDifference.years + ' лет,' : ''}  
+		${eventDifference.months !== 0 ? eventDifference.months + ' месяцев,' : ''} 
+		${eventDifference.days !== 0 ? eventDifference.days + ' дней,' : ''} 
+		${eventDifference.hours !== 0 ? eventDifference.hours + ' часов,' : ''} 
+		${eventDifference.minutes + ' минут,'} 
+		${eventDifference.seconds + ' секунд'}
+	`;
 };
+const addButton = (id) => {
+	let buttonDelete = document.createElement('button');
+	buttonDelete.id= id;
+	buttonDelete.classList.add('btn', 'btn-outline-secondary', 'btn-sm')
+	buttonDelete.textContent= 'Удалить';
+	buttonDelete.addEventListener('click', () => deleteEventFromRender('events',  id));
+	return buttonDelete;
+};
+
 const renderEvents = (arr) => {
-	if (arr === null) makeInfoMessage('Список событий пуст', 60000);
+	console.log(arr);
+	if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000);
 	else {
-		let arrForTeg = []; //массив, где будут лежать результаты createElement
+		let arrForTegWrapper = []; //создаём тэг для каждой обёртки события
+		let arrForTegWithContent = []; //создаём тэк для каждого содержимого с изменющейся информации о событии
 
 		arr.forEach((event, idx) => {
-			arrForTeg.push(document.createElement('p')); //создаём для каждого элемента массива тэг
-			let itemDifference = timeFormatter(new Date(event.newDate) - new Date()); //каждую секунду пересчитывается разница во времени между заданной датой и нынешней
-			let result;
-			let deleteButtom;
-			//для каждого созданного тега делаем текстовое содержимое
-			if (itemDifference.ms > 0) result = renderEventTemplate(event.name, itemDifference, true, event._id);
-			arrForTeg[idx].innerHTML = result.template;
+			arrForTegWrapper.push(document.createElement('div'));
+			arrForTegWithContent.push(document.createElement('span'));
 
-			// deleteButtom = document.getElementById(result.id.toString()); тут кнопка еще не доступна
+			let itemDifference = timeFormatter(new Date(event.newDate) - new Date()); //разница во времени между заданной датой и нынешней
 
-			//если таймер кончился
-			if (itemDifference.ms <= 0)
-				arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false, event._id);
+			if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML=renderEventTemplate(event.name, itemDifference, true); //для каждого созданного тега делаем  содержимое
+			if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML=renderEventTemplate(event.name, itemDifference, false); //если таймер кончился
 
-			dateResult.appendChild(arrForTeg[idx]); //вставляем на страницу
+			arrForTegWrapper[idx].appendChild(arrForTegWithContent[idx]); //добавляем в обёртку события контент
+			arrForTegWrapper[idx].appendChild(addButton(event._id)); //добавляем в обёртку события кнопку
+
+			dateResult.appendChild(arrForTegWrapper[idx]); //вставляем на страницу
 		});
 		//каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
 		interval = setInterval(() => {
 			arr.forEach((event, idx) => {
-				let itemDifference = timeFormatter(new Date(event.newDate) - 1000 - new Date());
-				// !!!вот он наш объект с шаблоном и айди
-				let result = renderEventTemplate(event.name, itemDifference, true, event._id);
-				let deleteButtom = document.getElementById(result.id.toString());
+				let itemDifference = timeFormatter(new Date(event.newDate) - 1000 - new Date()); //каждую секунду вычитаем из имеющеся даты 1000мс
 
-				// event.difference = countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
-				if (itemDifference.ms > 0) {
-					arrForTeg[idx].innerHTML = '';
-					arrForTeg[idx].innerHTML = result.template;
-					// !!!получаем кнопку
-					deleteButtom = document.getElementById(result.id.toString());
-					deleteButtom.addEventListener('click', (e) => {
-						// !!!реализуем логику удаления, айди вытаксиваем из объекта
-						e.preventDefault();
-						dateResult.removeChild(arrForTeg[idx]);
-						arr = arr.filter((el) => el._id !== result.id);
-						localStorage.setItem('events', JSON.stringify(arr));
-					});
-				}
+				if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
 				//если таймер кончился
-				if (itemDifference.ms <= 0)
-					arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
+				if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
 			});
 			// console.log('интервал сработал')
 		}, 1000);
@@ -177,7 +158,6 @@ const deleteEventFromRender = (key, id) => {
 	clearInterval(interval);
 	renderEvents(getEventFromStorage(key));
 };
-// deleteEventFromRender('events',4);
 
 makeDate.onclick = (e) => {
 	e.preventDefault();

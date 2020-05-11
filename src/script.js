@@ -101,15 +101,15 @@ const renderEventTemplate = (nameEvent, eventDifference, isPresent) => {
 const addButton = (id) => {
 	let buttonDelete = document.createElement('button');
 	buttonDelete.id= id;
-	buttonDelete.classList.add('btn', 'btn-outline-secondary', 'btn-sm')
-	buttonDelete.textContent= 'Удалить';
+	buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm')
+	buttonDelete.innerHTML= `&#10008`;
 	buttonDelete.addEventListener('click', () => deleteEventFromRender('events',  id));
 	return buttonDelete;
 };
 
 const renderEvents = (arr) => {
 	console.log(arr);
-	if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000);
+	if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000);
 	else {
 		let arrForTegWrapper = []; //создаём тэг для каждой обёртки события
 		let arrForTegWithContent = []; //создаём тэк для каждого содержимого с изменющейся информации о событии

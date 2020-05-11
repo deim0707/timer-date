@@ -1,5 +1,5 @@
 import {setToStorage, addToStorage, getEventFromStorage} from './storage';
-import {checkContent, renderEvents, addNewEventInRender, deleteEventFromRender} from './render';
+import {checkContent, renderEvents, addNewEventInRender} from './render';
 import {Event} from './event'
 
 const dateValue = document.getElementById('date-value'); //поле ввода даты события
@@ -18,10 +18,14 @@ checkboxTime.onchange = (event) => {
 
 checkContent(makeDate, dateValue, nameValue);
 
+if (localStorage === null) {
+    setToStorage('events', [new Event('Новый год', '2020-12-31')]);
+    addToStorage('events', new Event('Начало летa', '2020-06-01', '11:30:30'));
+}
 if (localStorage.length === 0) {
-  setToStorage('events', [new Event('Новый год', '2020-12-31')]);
-  addToStorage('events', new Event('Начало летa', '2020-06-01', '11:30:30'));
-  addToStorage('events', new Event('8 мая 11:30', '2020-05-08', '11:30:30'));
+    setToStorage('events', [new Event('Новый год', '2020-12-31')]);
+    addToStorage('events', new Event('Начало летa', '2020-06-01', '11:30:30'));
+    addToStorage('events', new Event('8 мая 11:30', '2020-05-08', '11:30:30'));
 }
 
 renderEvents(getEventFromStorage('events'), dateResult, interval);

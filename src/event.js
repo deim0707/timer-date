@@ -31,11 +31,11 @@ export class Event {
     constructor(name, date, time) {
         this._id = Event.counter;
         this.name = name;
-        this.newDate = new Date(`${date}T${time || '00:00:00'}`)
+        this.newDate = new Date(`${date}T${time || '00:00:00'}`);
     }
 
-    static get counter() { //счётчик для id
-        Event._counter = getEventFromStorage('events') ? getEventFromStorage('events').length + 1 : 1;
+    static get counter() {
+        Event._counter = Date.now();
         return Event._counter;
     }
 }

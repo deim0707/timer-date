@@ -1,8 +1,6 @@
 import {timeFormatter} from './event'
 import {getEventFromStorage, addToStorage, setToStorage} from './storage'
 
-
-
 //делает информационное сообщение на заданое кол-во мс
 const makeInfoMessage = (message, delay, target) => {
     // info.innerHTML += `<div><b> ${message} </b></div>`;
@@ -36,37 +34,48 @@ const renderEventTemplate = (nameEvent, eventDifference, isPresent) => {
   `;
 };
 
+const addButton = (id, target, interval) => {
+    let buttonDelete = document.createElement('button');
+    buttonDelete.id= id;
+    buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2')
+    buttonDelete.innerHTML= `&#10008`;
+    buttonDelete.addEventListener('click', () => deleteEventFromRender(target, interval,'events',  id));
+    return buttonDelete;
+};
+
 export const renderEvents = (arr, target, interval) => {
     // console.log(arr);
-    if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000)
+    if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target)
     else {
-        let arrForTeg = []; //массив, где будут лежать результаты createElement
+        let arrForTegWrapper = []; //создаём тэг для каждой обёртки события
+        let arrForTegWithContent = []; //создаём тэк для каждого содержимого с изменющейся информации о событии
 
         arr.forEach((event, idx) => {
-            arrForTeg.push(document.createElement('p')); //создаём для каждого элемента массива тэг
-            let itemDifference = timeFormatter(new Date(event.newDate) - new Date()); //каждую секунду пересчитывается разница во времени между заданной датой и нынешней
+            arrForTegWrapper.push(document.createElement('div'));
+            arrForTegWithContent.push(document.createElement('span'));
 
-            //для каждого созданного тега делаем текстовое содержимое
-            if (itemDifference.ms > 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
-            //если таймер кончился
-            if (itemDifference.ms <= 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
+            let itemDifference = timeFormatter(new Date(event.newDate) - new Date()); //разница во времени между заданной датой и нынешней
 
-            target.appendChild(arrForTeg[idx]); //вставляем на страницу
+            if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML=renderEventTemplate(event.name, itemDifference, true); //для каждого созданного тега делаем  содержимое
+            if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML=renderEventTemplate(event.name, itemDifference, false); //если таймер кончился
+
+            arrForTegWrapper[idx].appendChild(arrForTegWithContent[idx]); //добавляем в обёртку события контент
+            arrForTegWrapper[idx].appendChild(addButton(event._id, target, interval)); //добавляем в обёртку события кнопку
+
+            target.appendChild(arrForTegWrapper[idx]); //вставляем на страницу
         });
-        //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
-        interval = setInterval(
-            () => {
-                arr.forEach((event, idx) => {
-                    let itemDifference = timeFormatter((new Date(event.newDate) - 1000) - new Date());
 
-                    // event.difference = countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
-                    if (itemDifference.ms > 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
-                    //если таймер кончился
-                    if (itemDifference.ms <= 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
-                })
-                // console.log('интервал сработал')
-            }, 1000
-        )
+        //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
+        interval = setInterval(() => {
+            arr.forEach((event, idx) => {
+                let itemDifference = timeFormatter(new Date(event.newDate) - 1000 - new Date()); //каждую секунду вычитаем из имеющеся даты 1000мс
+
+                if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
+                //если таймер кончился
+                if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
+            });
+            // console.log('интервал сработал')
+        }, 1000);
     }
 };
 
@@ -78,13 +87,12 @@ export const addNewEventInRender = (outputField, interval, event) => {
 };
 
 
-export const deleteEventFromRender = (outputField, interval, key, id) => {
+export const deleteEventFromRender = (target, interval, key, id) => {
     setToStorage(
         key,
-        getEventFromStorage(key).filter(item => item._id !== id)
+        getEventFromStorage(key).filter((item) => item._id !== id)
     );
-    outputField.textContent = null;
+    target.textContent = null;
     clearInterval(interval);
-    renderEvents(getEventFromStorage(key), outputField, interval);
+    renderEvents(getEventFromStorage(key), target, interval);
 };
-// deleteEventFromRender('events',3);

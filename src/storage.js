@@ -2,4 +2,4 @@ export const setToStorage = (key, arrWithItems) => localStorage.setItem(key, JSO
 
 export const addToStorage = (key, item) => setToStorage(key, [...getEventFromStorage(key), item]);
 
-export const getEventFromStorage = (key) => JSON.parse(localStorage.getItem(key));
+export const getEventFromStorage = (key) => JSON.parse(localStorage.getItem(key)) === null ? [] : JSON.parse(localStorage.getItem(key));

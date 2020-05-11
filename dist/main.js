@@ -85,7 +85,7 @@ var addToStorage = exports.addToStorage = function addToStorage(key, item) {
 };
 
 var getEventFromStorage = exports.getEventFromStorage = function getEventFromStorage(key) {
-  return JSON.parse(localStorage.getItem(key));
+  return JSON.parse(localStorage.getItem(key)) === null ? [] : JSON.parse(localStorage.getItem(key));
 };
 
 /***/ }),
@@ -143,8 +143,7 @@ var Event = exports.Event = function () {
     _createClass(Event, null, [{
         key: 'counter',
         get: function get() {
-            //счётчик для id
-            Event._counter = (0, _storage.getEventFromStorage)('events') ? (0, _storage.getEventFromStorage)('events').length + 1 : 1;
+            Event._counter = Date.now();
             return Event._counter;
         }
     }]);
@@ -174,7 +173,6 @@ var info = document.getElementById('info'); //место, куда можно в
 var checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 
 var interval = void 0; //переменная в общем поле видимости, которая позволит очистить интервал 
-console.log('123ffffffffffffff');
 checkboxTime.onchange = function (event) {
     //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
     event.target.checked === false ? timeValue.classList.add('hidden') : timeValue.classList.remove('hidden');
@@ -182,6 +180,10 @@ checkboxTime.onchange = function (event) {
 
 (0, _render.checkContent)(makeDate, dateValue, nameValue);
 
+if (localStorage === null) {
+    (0, _storage.setToStorage)('events', [new _event.Event('Новый год', '2020-12-31')]);
+    (0, _storage.addToStorage)('events', new _event.Event('Начало летa', '2020-06-01', '11:30:30'));
+}
 if (localStorage.length === 0) {
     (0, _storage.setToStorage)('events', [new _event.Event('Новый год', '2020-12-31')]);
     (0, _storage.addToStorage)('events', new _event.Event('Начало летa', '2020-06-01', '11:30:30'));
@@ -244,31 +246,46 @@ var renderEventTemplate = function renderEventTemplate(nameEvent, eventDifferenc
     return '\n  <b>\u0421\u043E\u0431\u044B\u0442\u0438\u0435:</b> ' + nameEvent + '. \n  <b>' + (isPresent ? ' До него:' : 'C тех пор прошло:') + '</b>   \n  ' + (eventDifference.years !== 0 ? eventDifference.years + ' лет,' : '') + '  \n  ' + (eventDifference.months !== 0 ? eventDifference.months + ' месяцев,' : '') + ' \n  ' + (eventDifference.days !== 0 ? eventDifference.days + ' дней,' : '') + ' \n  ' + (eventDifference.hours !== 0 ? eventDifference.hours + ' часов,' : '') + ' \n  ' + (eventDifference.minutes + ' минут,') + ' \n  ' + (eventDifference.seconds + ' секунд') + ' \n  ';
 };
 
+var addButton = function addButton(id, target, interval) {
+    var buttonDelete = document.createElement('button');
+    buttonDelete.id = id;
+    buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2');
+    buttonDelete.innerHTML = '&#10008';
+    buttonDelete.addEventListener('click', function () {
+        return deleteEventFromRender(target, interval, 'events', id);
+    });
+    return buttonDelete;
+};
+
 var renderEvents = exports.renderEvents = function renderEvents(arr, target, interval) {
     // console.log(arr);
-    if (arr.length === 0) makeInfoMessage('Список событий пуст', 60000);else {
-        var arrForTeg = []; //массив, где будут лежать результаты createElement
+    if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target);else {
+        var arrForTegWrapper = []; //создаём тэг для каждой обёртки события
+        var arrForTegWithContent = []; //создаём тэк для каждого содержимого с изменющейся информации о событии
 
         arr.forEach(function (event, idx) {
-            arrForTeg.push(document.createElement('p')); //создаём для каждого элемента массива тэг
-            var itemDifference = (0, _event.timeFormatter)(new Date(event.newDate) - new Date()); //каждую секунду пересчитывается разница во времени между заданной датой и нынешней
+            arrForTegWrapper.push(document.createElement('div'));
+            arrForTegWithContent.push(document.createElement('span'));
 
-            //для каждого созданного тега делаем текстовое содержимое
-            if (itemDifference.ms > 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
-            //если таймер кончился
-            if (itemDifference.ms <= 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
+            var itemDifference = (0, _event.timeFormatter)(new Date(event.newDate) - new Date()); //разница во времени между заданной датой и нынешней
 
-            target.appendChild(arrForTeg[idx]); //вставляем на страницу
+            if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true); //для каждого созданного тега делаем  содержимое
+            if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false); //если таймер кончился
+
+            arrForTegWrapper[idx].appendChild(arrForTegWithContent[idx]); //добавляем в обёртку события контент
+            arrForTegWrapper[idx].appendChild(addButton(event._id, target, interval)); //добавляем в обёртку события кнопку
+
+            target.appendChild(arrForTegWrapper[idx]); //вставляем на страницу
         });
+
         //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
         interval = setInterval(function () {
             arr.forEach(function (event, idx) {
-                var itemDifference = (0, _event.timeFormatter)(new Date(event.newDate) - 1000 - new Date());
+                var itemDifference = (0, _event.timeFormatter)(new Date(event.newDate) - 1000 - new Date()); //каждую секунду вычитаем из имеющеся даты 1000мс
 
-                // event.difference = countDownTimer(event.difference.ms); //вычитаем 1000 милисекунд и возвращаем новое отформатированное значение
-                if (itemDifference.ms > 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
+                if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
                 //если таймер кончился
-                if (itemDifference.ms <= 0) arrForTeg[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
+                if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false);
             });
             // console.log('интервал сработал')
         }, 1000);
@@ -282,15 +299,14 @@ var addNewEventInRender = exports.addNewEventInRender = function addNewEventInRe
     renderEvents((0, _storage.getEventFromStorage)('events'), outputField, interval); //снова отрендерили это всё
 };
 
-var deleteEventFromRender = exports.deleteEventFromRender = function deleteEventFromRender(outputField, interval, key, id) {
+var deleteEventFromRender = exports.deleteEventFromRender = function deleteEventFromRender(target, interval, key, id) {
     (0, _storage.setToStorage)(key, (0, _storage.getEventFromStorage)(key).filter(function (item) {
         return item._id !== id;
     }));
-    outputField.textContent = null;
+    target.textContent = null;
     clearInterval(interval);
-    renderEvents((0, _storage.getEventFromStorage)(key), outputField, interval);
+    renderEvents((0, _storage.getEventFromStorage)(key), target, interval);
 };
-// deleteEventFromRender('events',3);
 
 /***/ })
 /******/ ]);

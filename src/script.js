@@ -101,7 +101,7 @@ const renderEventTemplate = (nameEvent, eventDifference, isPresent) => {
 const addButton = (id) => {
 	let buttonDelete = document.createElement('button');
 	buttonDelete.id= id;
-	buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm')
+	buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2')
 	buttonDelete.innerHTML= `&#10008`;
 	buttonDelete.addEventListener('click', () => deleteEventFromRender('events',  id));
 	return buttonDelete;

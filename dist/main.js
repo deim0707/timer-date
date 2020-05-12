@@ -98,7 +98,7 @@ var getEventFromStorage = exports.getEventFromStorage = function getEventFromSto
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Event = exports.timeFormatter = undefined;
+exports.EventEntry = exports.timeFormatter = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -131,24 +131,24 @@ var timeFormatter = exports.timeFormatter = function timeFormatter(date) {
     };
 };
 
-var Event = exports.Event = function () {
-    function Event(name, date, time) {
-        _classCallCheck(this, Event);
+var EventEntry = exports.EventEntry = function () {
+    function EventEntry(name, date, time) {
+        _classCallCheck(this, EventEntry);
 
-        this._id = Event.counter;
+        this._id = EventEntry.counter;
         this.name = name;
         this.newDate = new Date(date + 'T' + (time || '00:00:00'));
     }
 
-    _createClass(Event, null, [{
+    _createClass(EventEntry, null, [{
         key: 'counter',
         get: function get() {
-            Event._counter = Date.now();
-            return Event._counter;
+            EventEntry._counter = Date.now();
+            return EventEntry._counter;
         }
     }]);
 
-    return Event;
+    return EventEntry;
 }();
 
 /***/ }),
@@ -162,14 +162,13 @@ var _storage = __webpack_require__(0);
 
 var _render = __webpack_require__(3);
 
-var _event = __webpack_require__(1);
+var _eventEntry = __webpack_require__(1);
 
 var dateValue = document.getElementById('date-value'); //поле ввода даты события
 var nameValue = document.getElementById('name-value'); //поле ввода имени события
 var timeValue = document.getElementById('input-time'); //поле ввода времени
 var makeDate = document.getElementById('take-date'); //кнопка Пуск
 var dateResult = document.getElementById('date-result'); //сюда добавляем таймеры
-var info = document.getElementById('info'); //место, куда можно выводить информационные сообщения
 var checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 
 var interval = void 0; //переменная в общем поле видимости, которая позволит очистить интервал 
@@ -181,19 +180,19 @@ checkboxTime.onchange = function (event) {
 (0, _render.checkContent)(makeDate, dateValue, nameValue);
 
 if (localStorage === null) {
-    (0, _storage.setToStorage)('events', [new _event.Event('Новый год', '2020-12-31')]);
-    (0, _storage.addToStorage)('events', new _event.Event('Начало летa', '2020-06-01', '11:30:30'));
+    (0, _storage.setToStorage)('events', [new _eventEntry.EventEntry('Новый год', '2020-12-31')]);
+    (0, _storage.addToStorage)('events', new _eventEntry.EventEntry('Начало летa', '2020-06-01', '11:30:30'));
 }
 if (localStorage.length === 0) {
-    (0, _storage.setToStorage)('events', [new _event.Event('Новый год', '2020-12-31')]);
-    (0, _storage.addToStorage)('events', new _event.Event('Начало летa', '2020-06-01', '11:30:30'));
-    (0, _storage.addToStorage)('events', new _event.Event('8 мая 11:30', '2020-05-08', '11:30:30'));
+    (0, _storage.setToStorage)('events', [new _eventEntry.EventEntry('Новый год', '2020-12-31')]);
+    (0, _storage.addToStorage)('events', new _eventEntry.EventEntry('Начало летa', '2020-06-01', '11:30:30'));
+    (0, _storage.addToStorage)('events', new _eventEntry.EventEntry('8 мая 11:30', '2020-05-08', '11:30:30'));
 }
 
 (0, _render.renderEvents)((0, _storage.getEventFromStorage)('events'), dateResult, interval);
 
 makeDate.onclick = function () {
-    (0, _render.addNewEventInRender)(dateResult, interval, new _event.Event(nameValue.value, dateValue.value, timeValue.value));
+    (0, _render.addNewEventInRender)(dateResult, interval, new _eventEntry.EventEntry(nameValue.value, dateValue.value, timeValue.value));
     dateValue.value = '';
     nameValue.value = '';
     timeValue.value = '';
@@ -214,7 +213,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.deleteEventFromRender = exports.addNewEventInRender = exports.renderEvents = exports.checkContent = undefined;
 
-var _event = __webpack_require__(1);
+var _eventEntry = __webpack_require__(1);
 
 var _storage = __webpack_require__(0);
 
@@ -267,7 +266,7 @@ var renderEvents = exports.renderEvents = function renderEvents(arr, target, int
             arrForTegWrapper.push(document.createElement('div'));
             arrForTegWithContent.push(document.createElement('span'));
 
-            var itemDifference = (0, _event.timeFormatter)(new Date(event.newDate) - new Date()); //разница во времени между заданной датой и нынешней
+            var itemDifference = (0, _eventEntry.timeFormatter)(new Date(event.newDate) - new Date()); //разница во времени между заданной датой и нынешней
 
             if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true); //для каждого созданного тега делаем  содержимое
             if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false); //если таймер кончился
@@ -281,7 +280,7 @@ var renderEvents = exports.renderEvents = function renderEvents(arr, target, int
         //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
         interval = setInterval(function () {
             arr.forEach(function (event, idx) {
-                var itemDifference = (0, _event.timeFormatter)(new Date(event.newDate) - 1000 - new Date()); //каждую секунду вычитаем из имеющеся даты 1000мс
+                var itemDifference = (0, _eventEntry.timeFormatter)(new Date(event.newDate) - 1000 - new Date()); //каждую секунду вычитаем из имеющеся даты 1000мс
 
                 if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
                 //если таймер кончился

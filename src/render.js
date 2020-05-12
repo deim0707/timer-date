@@ -1,4 +1,4 @@
-import {timeFormatter} from './event'
+import {timeFormatter} from './eventEntry'
 import {getEventFromStorage, addToStorage, setToStorage} from './storage'
 
 //делает информационное сообщение на заданое кол-во мс
@@ -37,7 +37,7 @@ const renderEventTemplate = (nameEvent, eventDifference, isPresent) => {
 const addButton = (id, target, interval) => {
     let buttonDelete = document.createElement('button');
     buttonDelete.id= id;
-    buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2')
+    buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2');
     buttonDelete.innerHTML= `&#10008`;
     buttonDelete.addEventListener('click', () => deleteEventFromRender(target, interval,'events',  id));
     return buttonDelete;
@@ -45,7 +45,7 @@ const addButton = (id, target, interval) => {
 
 export const renderEvents = (arr, target, interval) => {
     // console.log(arr);
-    if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target)
+    if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target);
     else {
         let arrForTegWrapper = []; //создаём тэг для каждой обёртки события
         let arrForTegWithContent = []; //создаём тэк для каждого содержимого с изменющейся информации о событии
@@ -80,7 +80,7 @@ export const renderEvents = (arr, target, interval) => {
 };
 
 export const addNewEventInRender = (outputField, interval, event) => {
-    addToStorage('events', event)
+    addToStorage('events', event);
     outputField.textContent = null;
     clearInterval(interval);
     renderEvents(getEventFromStorage('events'), outputField, interval); //снова отрендерили это всё

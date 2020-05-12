@@ -1,7 +1,3 @@
-import {getEventFromStorage} from './storage';
-
-
-
 export const timeFormatter = (date) => {
     const ms = Number(date);
     let delta = Math.abs(date) / 1000; //переводит дату в секунды
@@ -27,15 +23,15 @@ export const timeFormatter = (date) => {
     }
 };
 
-export class Event {
+export class EventEntry {
     constructor(name, date, time) {
-        this._id = Event.counter;
+        this._id = EventEntry.counter;
         this.name = name;
         this.newDate = new Date(`${date}T${time || '00:00:00'}`);
     }
 
     static get counter() {
-        Event._counter = Date.now();
-        return Event._counter;
+        EventEntry._counter = Date.now();
+        return EventEntry._counter;
     }
 }

@@ -28,6 +28,7 @@ export class EventEntry {
         this._id = EventEntry.counter;
         this.name = name;
         this.newDate = new Date(`${date}T${time || '00:00:00'}`);
+        this.pause = false;
     }
 
     static get counter() {

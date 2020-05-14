@@ -3,8 +3,6 @@ import {getEventFromStorage, addToStorage, setToStorage} from './storage'
 
 //делает информационное сообщение на заданое кол-во мс
 const makeInfoMessage = (message, delay, target) => {
-    // info.innerHTML += `<div><b> ${message} </b></div>`;
-    // setTimeout(() => info.innerHTML = null, delay);
     target.innerHTML += `<div><b> ${message} </b></div>`;
     setTimeout(() => target.innerHTML = null, delay);
 };
@@ -19,32 +17,48 @@ export const checkContent = (target, ...args) => {
     })
 };
 
-
+const wordForm = (num,word) => {
+    const cases = [2, 0, 1, 1, 1, 2];
+    return `${num} ${word[(num%100>4 && num%100<20)? 2 : cases[(num%10<5)?num%10:5]]}`;
+};
 
 const renderEventTemplate = (nameEvent, eventDifference, isPresent) => {
     return `
   <b>Событие:</b> ${nameEvent}. 
   <b>${isPresent ? ' До него:' : 'C тех пор прошло:'}</b>   
-  ${eventDifference.years !== 0 ? eventDifference.years + ' лет,' : ''}  
-  ${eventDifference.months !== 0 ? eventDifference.months + ' месяцев,' : ''} 
-  ${eventDifference.days !== 0 ? eventDifference.days + ' дней,' : ''} 
-  ${eventDifference.hours !== 0 ? eventDifference.hours + ' часов,' : ''} 
-  ${eventDifference.minutes + ' минут,'} 
-  ${eventDifference.seconds + ' секунд'} 
+  ${eventDifference.years !== 0 ? wordForm(eventDifference.years, ['год,', 'года,', 'лет,']) : ''}  
+  ${eventDifference.months !== 0 ? wordForm(eventDifference.months, ['месяц,', 'месяца,', 'месяцев,']) : ''} 
+  ${eventDifference.days !== 0 ? wordForm(eventDifference.days, ['день,', 'дня,', 'дней,']) : ''} 
+  ${eventDifference.hours !== 0 ? wordForm(eventDifference.hours, ['час,', 'часа,', 'часов,']) : ''} 
+  ${ wordForm(eventDifference.minutes, ['минута,', 'минуты,', 'минут,'])  } 
+  ${ wordForm(eventDifference.seconds, ['секунда', 'секунды', 'секунд']) } 
   `;
 };
 
 const addButton = (id, target, interval) => {
+    let wrapperForButtons = document.createElement('div');
+
     let buttonDelete = document.createElement('button');
-    buttonDelete.id= id;
+    // buttonDelete.id = id;
     buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2');
-    buttonDelete.innerHTML= `&#10008`;
-    buttonDelete.addEventListener('click', () => deleteEventFromRender(target, interval,'events',  id));
-    return buttonDelete;
+    buttonDelete.innerHTML = `&#10008`;
+    buttonDelete.addEventListener('click', () => deleteEventFromRender(target, interval, 'events', id));
+
+    let buttonPause = document.createElement('button');
+    // buttonPause.id = 'p' + id;
+    buttonPause.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2', 'mr-2', 'flex-shrink-0');
+    buttonPause.innerHTML = `<b>||</b> `;
+    // buttonPause.addEventListener('click', () => console.log(`нажата пауза на ${id}`));
+    buttonPause.addEventListener('click', () => pauseEvent(target, interval, 'events', id));
+
+
+    wrapperForButtons.appendChild(buttonPause);
+    wrapperForButtons.appendChild(buttonDelete);
+    return wrapperForButtons;
 };
 
 export const renderEvents = (arr, target, interval) => {
-    // console.log(arr);
+    console.log(arr);
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target);
     else {
         let arrForTegWrapper = []; //создаём тэг для каждой обёртки события
@@ -56,8 +70,8 @@ export const renderEvents = (arr, target, interval) => {
 
             let itemDifference = timeFormatter(new Date(event.newDate) - new Date()); //разница во времени между заданной датой и нынешней
 
-            if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML=renderEventTemplate(event.name, itemDifference, true); //для каждого созданного тега делаем  содержимое
-            if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML=renderEventTemplate(event.name, itemDifference, false); //если таймер кончился
+            if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true); //для каждого созданного тега делаем  содержимое
+            if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false); //если таймер кончился
 
             arrForTegWrapper[idx].appendChild(arrForTegWithContent[idx]); //добавляем в обёртку события контент
             arrForTegWrapper[idx].appendChild(addButton(event._id, target, interval)); //добавляем в обёртку события кнопку
@@ -68,6 +82,8 @@ export const renderEvents = (arr, target, interval) => {
         //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
         interval = setInterval(() => {
             arr.forEach((event, idx) => {
+                if(event.pause === true) return; //если событие поставленно на паузу, то приостанавливаем обновление
+
                 let itemDifference = timeFormatter(new Date(event.newDate) - 1000 - new Date()); //каждую секунду вычитаем из имеющеся даты 1000мс
 
                 if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
@@ -79,15 +95,15 @@ export const renderEvents = (arr, target, interval) => {
     }
 };
 
-export const addNewEventInRender = (outputField, interval, event) => {
+export const addNewEventInRender = (target, interval, event) => {
     addToStorage('events', event);
-    outputField.textContent = null;
+    target.textContent = null;
     clearInterval(interval);
-    renderEvents(getEventFromStorage('events'), outputField, interval); //снова отрендерили это всё
+    renderEvents(getEventFromStorage('events'), target, interval); //снова отрендерили это всё
 };
 
 
-export const deleteEventFromRender = (target, interval, key, id) => {
+const deleteEventFromRender = (target, interval, key, id) => {
     setToStorage(
         key,
         getEventFromStorage(key).filter((item) => item._id !== id)
@@ -96,3 +112,16 @@ export const deleteEventFromRender = (target, interval, key, id) => {
     clearInterval(interval);
     renderEvents(getEventFromStorage(key), target, interval);
 };
+
+const pauseEvent = (target, interval, key, id) => {
+    let arr = getEventFromStorage(key);
+    arr.forEach(item => {
+        if(item._id === id) item.pause = item.pause !== true;
+    });
+    setToStorage(key, arr);
+
+    target.textContent = null;
+    clearInterval(interval);
+    renderEvents(getEventFromStorage(key), target, interval);
+};
+

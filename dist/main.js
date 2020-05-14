@@ -135,6 +135,7 @@ var EventEntry = exports.EventEntry = function () {
         this._id = EventEntry.counter;
         this.name = name;
         this.newDate = new Date(date + 'T' + (time || '00:00:00'));
+        this.pause = false;
     }
 
     _createClass(EventEntry, null, [{
@@ -168,23 +169,14 @@ var makeDate = document.getElementById('take-date'); //кнопка Пуск
 var dateResult = document.getElementById('date-result'); //сюда добавляем таймеры
 var checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 
-var interval = void 0; //переменная в общем поле видимости, которая позволит очистить интервал 
+var interval = void 0; //переменная в общем поле видимости, которая позволит очистить интервал
+
 checkboxTime.onchange = function (event) {
     //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
     event.target.checked === false ? timeValue.classList.add('hidden') : timeValue.classList.remove('hidden');
 };
 
 (0, _render.checkContent)(makeDate, dateValue, nameValue);
-
-if (localStorage === null) {
-    (0, _storage.setToStorage)('events', [new _eventEntry.EventEntry('Новый год', '2020-12-31')]);
-    (0, _storage.addToStorage)('events', new _eventEntry.EventEntry('Начало летa', '2020-06-01', '11:30:30'));
-}
-if (localStorage.length === 0) {
-    (0, _storage.setToStorage)('events', [new _eventEntry.EventEntry('Новый год', '2020-12-31')]);
-    (0, _storage.addToStorage)('events', new _eventEntry.EventEntry('Начало летa', '2020-06-01', '11:30:30'));
-    (0, _storage.addToStorage)('events', new _eventEntry.EventEntry('8 мая 11:30', '2020-05-08', '11:30:30'));
-}
 
 (0, _render.renderEvents)((0, _storage.getEventFromStorage)('events'), dateResult, interval);
 
@@ -196,8 +188,6 @@ makeDate.onclick = function () {
     makeDate.disabled = true;
 };
 
-// deleteEventFromRender(dateResult, interval, 'events',1)
-
 /***/ }),
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -208,7 +198,7 @@ makeDate.onclick = function () {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.deleteEventFromRender = exports.addNewEventInRender = exports.renderEvents = exports.checkContent = undefined;
+exports.addNewEventInRender = exports.renderEvents = exports.checkContent = undefined;
 
 var _eventEntry = __webpack_require__(1);
 
@@ -216,8 +206,6 @@ var _storage = __webpack_require__(0);
 
 //делает информационное сообщение на заданое кол-во мс
 var makeInfoMessage = function makeInfoMessage(message, delay, target) {
-    // info.innerHTML += `<div><b> ${message} </b></div>`;
-    // setTimeout(() => info.innerHTML = null, delay);
     target.innerHTML += '<div><b> ' + message + ' </b></div>';
     setTimeout(function () {
         return target.innerHTML = null;
@@ -238,23 +226,42 @@ var checkContent = exports.checkContent = function checkContent(target) {
     });
 };
 
+var wordForm = function wordForm(num, word) {
+    var cases = [2, 0, 1, 1, 1, 2];
+    return num + ' ' + word[num % 100 > 4 && num % 100 < 20 ? 2 : cases[num % 10 < 5 ? num % 10 : 5]];
+};
+
 var renderEventTemplate = function renderEventTemplate(nameEvent, eventDifference, isPresent) {
-    return '\n  <b>\u0421\u043E\u0431\u044B\u0442\u0438\u0435:</b> ' + nameEvent + '. \n  <b>' + (isPresent ? ' До него:' : 'C тех пор прошло:') + '</b>   \n  ' + (eventDifference.years !== 0 ? eventDifference.years + ' лет,' : '') + '  \n  ' + (eventDifference.months !== 0 ? eventDifference.months + ' месяцев,' : '') + ' \n  ' + (eventDifference.days !== 0 ? eventDifference.days + ' дней,' : '') + ' \n  ' + (eventDifference.hours !== 0 ? eventDifference.hours + ' часов,' : '') + ' \n  ' + (eventDifference.minutes + ' минут,') + ' \n  ' + (eventDifference.seconds + ' секунд') + ' \n  ';
+    return '\n  <b>\u0421\u043E\u0431\u044B\u0442\u0438\u0435:</b> ' + nameEvent + '. \n  <b>' + (isPresent ? ' До него:' : 'C тех пор прошло:') + '</b>   \n  ' + (eventDifference.years !== 0 ? wordForm(eventDifference.years, ['год,', 'года,', 'лет,']) : '') + '  \n  ' + (eventDifference.months !== 0 ? wordForm(eventDifference.months, ['месяц,', 'месяца,', 'месяцев,']) : '') + ' \n  ' + (eventDifference.days !== 0 ? wordForm(eventDifference.days, ['день,', 'дня,', 'дней,']) : '') + ' \n  ' + (eventDifference.hours !== 0 ? wordForm(eventDifference.hours, ['час,', 'часа,', 'часов,']) : '') + ' \n  ' + wordForm(eventDifference.minutes, ['минута,', 'минуты,', 'минут,']) + ' \n  ' + wordForm(eventDifference.seconds, ['секунда', 'секунды', 'секунд']) + ' \n  ';
 };
 
 var addButton = function addButton(id, target, interval) {
+    var wrapperForButtons = document.createElement('div');
+
     var buttonDelete = document.createElement('button');
-    buttonDelete.id = id;
+    // buttonDelete.id = id;
     buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2');
     buttonDelete.innerHTML = '&#10008';
     buttonDelete.addEventListener('click', function () {
         return deleteEventFromRender(target, interval, 'events', id);
     });
-    return buttonDelete;
+
+    var buttonPause = document.createElement('button');
+    // buttonPause.id = 'p' + id;
+    buttonPause.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2', 'mr-2', 'flex-shrink-0');
+    buttonPause.innerHTML = '<b>||</b> ';
+    // buttonPause.addEventListener('click', () => console.log(`нажата пауза на ${id}`));
+    buttonPause.addEventListener('click', function () {
+        return pauseEvent(target, interval, 'events', id);
+    });
+
+    wrapperForButtons.appendChild(buttonPause);
+    wrapperForButtons.appendChild(buttonDelete);
+    return wrapperForButtons;
 };
 
 var renderEvents = exports.renderEvents = function renderEvents(arr, target, interval) {
-    // console.log(arr);
+    console.log(arr);
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target);else {
         var arrForTegWrapper = []; //создаём тэг для каждой обёртки события
         var arrForTegWithContent = []; //создаём тэк для каждого содержимого с изменющейся информации о событии
@@ -277,6 +284,8 @@ var renderEvents = exports.renderEvents = function renderEvents(arr, target, int
         //каждую секунду для каждого эл-та понижаем кол-во милисекунд на 1000
         interval = setInterval(function () {
             arr.forEach(function (event, idx) {
+                if (event.pause === true) return; //если событие поставленно на паузу, то приостанавливаем обновление
+
                 var itemDifference = (0, _eventEntry.timeFormatter)(new Date(event.newDate) - 1000 - new Date()); //каждую секунду вычитаем из имеющеся даты 1000мс
 
                 if (itemDifference.ms > 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, true);
@@ -288,17 +297,29 @@ var renderEvents = exports.renderEvents = function renderEvents(arr, target, int
     }
 };
 
-var addNewEventInRender = exports.addNewEventInRender = function addNewEventInRender(outputField, interval, event) {
+var addNewEventInRender = exports.addNewEventInRender = function addNewEventInRender(target, interval, event) {
     (0, _storage.addToStorage)('events', event);
-    outputField.textContent = null;
+    target.textContent = null;
     clearInterval(interval);
-    renderEvents((0, _storage.getEventFromStorage)('events'), outputField, interval); //снова отрендерили это всё
+    renderEvents((0, _storage.getEventFromStorage)('events'), target, interval); //снова отрендерили это всё
 };
 
-var deleteEventFromRender = exports.deleteEventFromRender = function deleteEventFromRender(target, interval, key, id) {
+var deleteEventFromRender = function deleteEventFromRender(target, interval, key, id) {
     (0, _storage.setToStorage)(key, (0, _storage.getEventFromStorage)(key).filter(function (item) {
         return item._id !== id;
     }));
+    target.textContent = null;
+    clearInterval(interval);
+    renderEvents((0, _storage.getEventFromStorage)(key), target, interval);
+};
+
+var pauseEvent = function pauseEvent(target, interval, key, id) {
+    var arr = (0, _storage.getEventFromStorage)(key);
+    arr.forEach(function (item) {
+        if (item._id === id) item.pause = item.pause !== true;
+    });
+    (0, _storage.setToStorage)(key, arr);
+
     target.textContent = null;
     clearInterval(interval);
     renderEvents((0, _storage.getEventFromStorage)(key), target, interval);

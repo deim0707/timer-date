@@ -1,4 +1,4 @@
-import {setToStorage, addToStorage, getEventFromStorage} from './storage';
+import {getEventFromStorage} from './storage';
 import {checkContent, renderEvents, addNewEventInRender} from './render';
 import {EventEntry} from './eventEntry'
 
@@ -9,7 +9,8 @@ const makeDate = document.getElementById('take-date'); //кнопка Пуск
 const dateResult = document.getElementById('date-result'); //сюда добавляем таймеры
 const checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 
-let interval; //переменная в общем поле видимости, которая позволит очистить интервал 
+let interval; //переменная в общем поле видимости, которая позволит очистить интервал
+
 checkboxTime.onchange = (event) => {
     //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
     event.target.checked === false ? timeValue.classList.add('hidden') : timeValue.classList.remove('hidden');
@@ -17,15 +18,6 @@ checkboxTime.onchange = (event) => {
 
 checkContent(makeDate, dateValue, nameValue);
 
-if (localStorage === null) {
-    setToStorage('events', [new EventEntry('Новый год', '2020-12-31')]);
-    addToStorage('events', new EventEntry('Начало летa', '2020-06-01', '11:30:30'));
-}
-if (localStorage.length === 0) {
-    setToStorage('events', [new EventEntry('Новый год', '2020-12-31')]);
-    addToStorage('events', new EventEntry('Начало летa', '2020-06-01', '11:30:30'));
-    addToStorage('events', new EventEntry('8 мая 11:30', '2020-05-08', '11:30:30'));
-}
 
 renderEvents(getEventFromStorage('events'), dateResult, interval);
 
@@ -36,6 +28,3 @@ makeDate.onclick = () => {
     timeValue.value = '';
     makeDate.disabled = true;
 };
-
-// deleteEventFromRender(dateResult, interval, 'events',1)
-

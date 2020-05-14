@@ -1,5 +1,5 @@
 import {timeFormatter} from './eventEntry'
-import {getEventFromStorage, addToStorage, setToStorage} from './storage'
+import {getFromStorage, addToStorage, setToStorage} from './storage'
 
 let interval; //переменная в общем поле видимости, которая позволит очистить интервал
 
@@ -77,6 +77,9 @@ export const renderEvents = (arr, target ) => {
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target);
     else {
         // arr=arr.sort(compareDate); //отсорировался массив. ближайшие (или прошедшие) в начале списка
+        getFromStorage('sort') ? arr=arr.sort(compareDate) : null;
+
+
 
         let arrForTegWrapper = []; //создаём тэг для каждой обёртки события
         let arrForTegWithContent = []; //создаём тэк для каждого содержимого с изменющейся информации о событии
@@ -116,22 +119,22 @@ export const addNewEventInRender = (target, event) => {
     addToStorage('events', event);
     target.textContent = null;
     clearInterval(interval);
-    renderEvents(getEventFromStorage('events'), target); //снова отрендерили это всё
+    renderEvents(getFromStorage('events'), target); //снова отрендерили это всё
 };
 
 
 const deleteEventFromRender = (target, key, id) => {
     setToStorage(
         key,
-        getEventFromStorage(key).filter((item) => item._id !== id)
+        getFromStorage(key).filter((item) => item._id !== id)
     );
     target.textContent = null;
     clearInterval(interval);
-    renderEvents(getEventFromStorage(key), target, interval);
+    renderEvents(getFromStorage(key), target, interval);
 };
 
 const pauseEvent = (target, key, id) => {
-    let arr = getEventFromStorage(key);
+    let arr = getFromStorage(key);
     arr.forEach(item => {
         if (item._id === id) item.pause = item.pause !== true;
     });
@@ -139,6 +142,17 @@ const pauseEvent = (target, key, id) => {
 
     target.textContent = null;
     clearInterval(interval);
-    renderEvents(getEventFromStorage(key), target, interval);
+    renderEvents(getFromStorage(key), target, interval);
 };
+
+export const makeSort = (target) => {
+    // console.log(getEventFromStorage('sort'));
+    const oldValueCheckboxSort=getFromStorage('sort');
+    setToStorage('sort', !oldValueCheckboxSort)
+
+    target.textContent = null;
+    clearInterval(interval);
+    renderEvents(getFromStorage('events'), target, interval);
+
+}
 

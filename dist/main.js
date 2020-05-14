@@ -76,15 +76,15 @@ Object.defineProperty(exports, "__esModule", {
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-var setToStorage = exports.setToStorage = function setToStorage(key, arrWithItems) {
-  return localStorage.setItem(key, JSON.stringify(arrWithItems));
+var setToStorage = exports.setToStorage = function setToStorage(key, items) {
+  return localStorage.setItem(key, JSON.stringify(items));
 };
 
 var addToStorage = exports.addToStorage = function addToStorage(key, item) {
-  return setToStorage(key, [].concat(_toConsumableArray(getEventFromStorage(key)), [item]));
+  return setToStorage(key, [].concat(_toConsumableArray(getFromStorage(key)), [item]));
 };
 
-var getEventFromStorage = exports.getEventFromStorage = function getEventFromStorage(key) {
+var getFromStorage = exports.getFromStorage = function getFromStorage(key) {
   return JSON.parse(localStorage.getItem(key)) === null ? [] : JSON.parse(localStorage.getItem(key));
 };
 
@@ -168,6 +168,7 @@ var timeValue = document.getElementById('input-time'); //поле ввода в�
 var makeDate = document.getElementById('take-date'); //кнопка Пуск
 var dateResult = document.getElementById('date-result'); //сюда добавляем таймеры
 var checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
+var checkboxSort = document.getElementById('sort'); //чекбокс, отображения\скрытия времени
 
 
 checkboxTime.onchange = function (event) {
@@ -177,15 +178,21 @@ checkboxTime.onchange = function (event) {
 
 (0, _render.checkContent)(makeDate, dateValue, nameValue);
 
-(0, _render.renderEvents)((0, _storage.getEventFromStorage)('events'), dateResult);
+(0, _render.renderEvents)((0, _storage.getFromStorage)('events'), dateResult);
 
-makeDate.onclick = function () {
+checkboxSort.checked = (0, _storage.getFromStorage)('sort');
+
+checkboxSort.addEventListener('click', function () {
+    return (0, _render.makeSort)(dateResult);
+});
+
+makeDate.addEventListener("click", function () {
     (0, _render.addNewEventInRender)(dateResult, new _eventEntry.EventEntry(nameValue.value, dateValue.value, timeValue.value));
     dateValue.value = '';
     nameValue.value = '';
     timeValue.value = '';
     makeDate.disabled = true;
-};
+});
 
 /***/ }),
 /* 3 */
@@ -197,7 +204,7 @@ makeDate.onclick = function () {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.addNewEventInRender = exports.renderEvents = exports.checkContent = undefined;
+exports.makeSort = exports.addNewEventInRender = exports.renderEvents = exports.checkContent = undefined;
 
 var _eventEntry = __webpack_require__(1);
 
@@ -261,9 +268,25 @@ var addButton = function addButton(id, target, event) {
     return wrapperForButtons;
 };
 
+var compareDate = function compareDate(a, b) {
+    var date1 = +new Date(a.newDate);
+    var date2 = +new Date(b.newDate);
+
+    if (date1 < date2) {
+        return -1;
+    }
+    if (date1 > date2) {
+        return 1;
+    }
+    return 0;
+};
+
 var renderEvents = exports.renderEvents = function renderEvents(arr, target) {
     // console.log(arr);
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target);else {
+        // arr=arr.sort(compareDate); //отсорировался массив. ближайшие (или прошедшие) в начале списка
+        (0, _storage.getFromStorage)('sort') ? arr = arr.sort(compareDate) : null;
+
         var arrForTegWrapper = []; //создаём тэг для каждой обёртки события
         var arrForTegWithContent = []; //создаём тэк для каждого содержимого с изменющейся информации о событии
 
@@ -302,20 +325,20 @@ var addNewEventInRender = exports.addNewEventInRender = function addNewEventInRe
     (0, _storage.addToStorage)('events', event);
     target.textContent = null;
     clearInterval(interval);
-    renderEvents((0, _storage.getEventFromStorage)('events'), target); //снова отрендерили это всё
+    renderEvents((0, _storage.getFromStorage)('events'), target); //снова отрендерили это всё
 };
 
 var deleteEventFromRender = function deleteEventFromRender(target, key, id) {
-    (0, _storage.setToStorage)(key, (0, _storage.getEventFromStorage)(key).filter(function (item) {
+    (0, _storage.setToStorage)(key, (0, _storage.getFromStorage)(key).filter(function (item) {
         return item._id !== id;
     }));
     target.textContent = null;
     clearInterval(interval);
-    renderEvents((0, _storage.getEventFromStorage)(key), target, interval);
+    renderEvents((0, _storage.getFromStorage)(key), target, interval);
 };
 
 var pauseEvent = function pauseEvent(target, key, id) {
-    var arr = (0, _storage.getEventFromStorage)(key);
+    var arr = (0, _storage.getFromStorage)(key);
     arr.forEach(function (item) {
         if (item._id === id) item.pause = item.pause !== true;
     });
@@ -323,7 +346,17 @@ var pauseEvent = function pauseEvent(target, key, id) {
 
     target.textContent = null;
     clearInterval(interval);
-    renderEvents((0, _storage.getEventFromStorage)(key), target, interval);
+    renderEvents((0, _storage.getFromStorage)(key), target, interval);
+};
+
+var makeSort = exports.makeSort = function makeSort(target) {
+    // console.log(getEventFromStorage('sort'));
+    var oldValueCheckboxSort = (0, _storage.getFromStorage)('sort');
+    (0, _storage.setToStorage)('sort', !oldValueCheckboxSort);
+
+    target.textContent = null;
+    clearInterval(interval);
+    renderEvents((0, _storage.getFromStorage)('events'), target, interval);
 };
 
 /***/ })

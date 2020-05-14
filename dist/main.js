@@ -169,7 +169,6 @@ var makeDate = document.getElementById('take-date'); //кнопка Пуск
 var dateResult = document.getElementById('date-result'); //сюда добавляем таймеры
 var checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 
-var interval = void 0; //переменная в общем поле видимости, которая позволит очистить интервал
 
 checkboxTime.onchange = function (event) {
     //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
@@ -178,10 +177,10 @@ checkboxTime.onchange = function (event) {
 
 (0, _render.checkContent)(makeDate, dateValue, nameValue);
 
-(0, _render.renderEvents)((0, _storage.getEventFromStorage)('events'), dateResult, interval);
+(0, _render.renderEvents)((0, _storage.getEventFromStorage)('events'), dateResult);
 
 makeDate.onclick = function () {
-    (0, _render.addNewEventInRender)(dateResult, interval, new _eventEntry.EventEntry(nameValue.value, dateValue.value, timeValue.value));
+    (0, _render.addNewEventInRender)(dateResult, new _eventEntry.EventEntry(nameValue.value, dateValue.value, timeValue.value));
     dateValue.value = '';
     nameValue.value = '';
     timeValue.value = '';
@@ -203,6 +202,8 @@ exports.addNewEventInRender = exports.renderEvents = exports.checkContent = unde
 var _eventEntry = __webpack_require__(1);
 
 var _storage = __webpack_require__(0);
+
+var interval = void 0; //переменная в общем поле видимости, которая позволит очистить интервал
 
 //делает информационное сообщение на заданое кол-во мс
 var makeInfoMessage = function makeInfoMessage(message, delay, target) {
@@ -235,26 +236,24 @@ var renderEventTemplate = function renderEventTemplate(nameEvent, eventDifferenc
     return '\n  <b>\u0421\u043E\u0431\u044B\u0442\u0438\u0435:</b> ' + nameEvent + '. \n  <b>' + (isPresent ? ' До него:' : 'C тех пор прошло:') + '</b>   \n  ' + (eventDifference.years !== 0 ? wordForm(eventDifference.years, ['год,', 'года,', 'лет,']) : '') + '  \n  ' + (eventDifference.months !== 0 ? wordForm(eventDifference.months, ['месяц,', 'месяца,', 'месяцев,']) : '') + ' \n  ' + (eventDifference.days !== 0 ? wordForm(eventDifference.days, ['день,', 'дня,', 'дней,']) : '') + ' \n  ' + (eventDifference.hours !== 0 ? wordForm(eventDifference.hours, ['час,', 'часа,', 'часов,']) : '') + ' \n  ' + wordForm(eventDifference.minutes, ['минута,', 'минуты,', 'минут,']) + ' \n  ' + wordForm(eventDifference.seconds, ['секунда', 'секунды', 'секунд']) + ' \n  ';
 };
 
-var addButton = function addButton(id, target, interval) {
+var addButton = function addButton(id, target, event) {
     var wrapperForButtons = document.createElement('div');
 
     var buttonDelete = document.createElement('button');
-    // buttonDelete.id = id;
     buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2');
     buttonDelete.title = 'Удалить';
     buttonDelete.innerHTML = '&#10008';
     buttonDelete.addEventListener('click', function () {
-        return deleteEventFromRender(target, interval, 'events', id);
+        return deleteEventFromRender(target, 'events', id);
     });
 
     var buttonPause = document.createElement('button');
-    // buttonPause.id = 'p' + id;
-    buttonPause.classList.add('btn', 'btn-outline-info', 'btn-sm', 'mt-2', 'mr-2', 'flex-shrink-0');
-    buttonPause.title = 'Пауза отображения счётчика';
-    buttonPause.innerHTML = '<b>||</b> ';
-    // buttonPause.addEventListener('click', () => console.log(`нажата пауза на ${id}`));
+    buttonPause.classList.add('btn', 'btn-sm', 'mt-2', 'mr-2', 'flex-shrink-0');
+    event.pause === true ? buttonPause.classList.add('btn-info') : buttonPause.classList.add('btn-outline-info');
+    buttonPause.title = 'Пауза отображения отсчёта счётчика';
+    buttonPause.innerHTML = '<b>||</b>';
     buttonPause.addEventListener('click', function () {
-        return pauseEvent(target, interval, 'events', id);
+        return pauseEvent(target, 'events', id);
     });
 
     wrapperForButtons.appendChild(buttonPause);
@@ -262,7 +261,7 @@ var addButton = function addButton(id, target, interval) {
     return wrapperForButtons;
 };
 
-var renderEvents = exports.renderEvents = function renderEvents(arr, target, interval) {
+var renderEvents = exports.renderEvents = function renderEvents(arr, target) {
     // console.log(arr);
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target);else {
         var arrForTegWrapper = []; //создаём тэг для каждой обёртки события
@@ -278,7 +277,7 @@ var renderEvents = exports.renderEvents = function renderEvents(arr, target, int
             if (itemDifference.ms <= 0) arrForTegWithContent[idx].innerHTML = renderEventTemplate(event.name, itemDifference, false); //если таймер кончился
 
             arrForTegWrapper[idx].appendChild(arrForTegWithContent[idx]); //добавляем в обёртку события контент
-            arrForTegWrapper[idx].appendChild(addButton(event._id, target, interval)); //добавляем в обёртку события кнопку
+            arrForTegWrapper[idx].appendChild(addButton(event._id, target, event)); //добавляем в обёртку события кнопку
 
             target.appendChild(arrForTegWrapper[idx]); //вставляем на страницу
         });
@@ -299,14 +298,14 @@ var renderEvents = exports.renderEvents = function renderEvents(arr, target, int
     }
 };
 
-var addNewEventInRender = exports.addNewEventInRender = function addNewEventInRender(target, interval, event) {
+var addNewEventInRender = exports.addNewEventInRender = function addNewEventInRender(target, event) {
     (0, _storage.addToStorage)('events', event);
     target.textContent = null;
     clearInterval(interval);
-    renderEvents((0, _storage.getEventFromStorage)('events'), target, interval); //снова отрендерили это всё
+    renderEvents((0, _storage.getEventFromStorage)('events'), target); //снова отрендерили это всё
 };
 
-var deleteEventFromRender = function deleteEventFromRender(target, interval, key, id) {
+var deleteEventFromRender = function deleteEventFromRender(target, key, id) {
     (0, _storage.setToStorage)(key, (0, _storage.getEventFromStorage)(key).filter(function (item) {
         return item._id !== id;
     }));
@@ -315,7 +314,7 @@ var deleteEventFromRender = function deleteEventFromRender(target, interval, key
     renderEvents((0, _storage.getEventFromStorage)(key), target, interval);
 };
 
-var pauseEvent = function pauseEvent(target, interval, key, id) {
+var pauseEvent = function pauseEvent(target, key, id) {
     var arr = (0, _storage.getEventFromStorage)(key);
     arr.forEach(function (item) {
         if (item._id === id) item.pause = item.pause !== true;

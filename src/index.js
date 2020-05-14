@@ -9,7 +9,6 @@ const makeDate = document.getElementById('take-date'); //кнопка Пуск
 const dateResult = document.getElementById('date-result'); //сюда добавляем таймеры
 const checkboxTime = document.getElementById('checkbox-time'); //чекбокс, отображения\скрытия времени
 
-let interval; //переменная в общем поле видимости, которая позволит очистить интервал
 
 checkboxTime.onchange = (event) => {
     //происходит при нажатии на чекбокс "показать время". скрывает и показывает поле ввода времени
@@ -19,10 +18,10 @@ checkboxTime.onchange = (event) => {
 checkContent(makeDate, dateValue, nameValue);
 
 
-renderEvents(getEventFromStorage('events'), dateResult, interval);
+renderEvents(getEventFromStorage('events'), dateResult);
 
 makeDate.onclick = () => {
-    addNewEventInRender(dateResult, interval, new EventEntry(nameValue.value, dateValue.value, timeValue.value));
+    addNewEventInRender(dateResult, new EventEntry(nameValue.value, dateValue.value, timeValue.value));
     dateValue.value = '';
     nameValue.value = '';
     timeValue.value = '';

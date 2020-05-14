@@ -59,10 +59,25 @@ const addButton = (id, target, event) => {
     return wrapperForButtons;
 };
 
+const compareDate = (a, b) => {
+    const date1 = +(new Date(a.newDate));
+    const date2 = +(new Date(b.newDate));
+
+    if (date1 < date2) {
+        return -1;
+    }
+    if (date1 > date2) {
+        return 1;
+    }
+    return 0;
+};
+
 export const renderEvents = (arr, target ) => {
     // console.log(arr);
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target);
     else {
+        // arr=arr.sort(compareDate); //отсорировался массив. ближайшие (или прошедшие) в начале списка
+
         let arrForTegWrapper = []; //создаём тэг для каждой обёртки события
         let arrForTegWithContent = []; //создаём тэк для каждого содержимого с изменющейся информации о событии
 

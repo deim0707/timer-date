@@ -47,7 +47,7 @@ const addButton = (id, target, interval) => {
 
     let buttonPause = document.createElement('button');
     // buttonPause.id = 'p' + id;
-    buttonPause.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2', 'mr-2', 'flex-shrink-0');
+    buttonPause.classList.add('btn', 'btn-outline-info', 'btn-sm', 'mt-2', 'mr-2', 'flex-shrink-0');
     buttonPause.title='Пауза отображения счётчика';
     buttonPause.innerHTML = `<b>||</b> `;
     // buttonPause.addEventListener('click', () => console.log(`нажата пауза на ${id}`));

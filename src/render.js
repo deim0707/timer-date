@@ -41,12 +41,14 @@ const addButton = (id, target, interval) => {
     let buttonDelete = document.createElement('button');
     // buttonDelete.id = id;
     buttonDelete.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2');
+    buttonDelete.title='Удалить';
     buttonDelete.innerHTML = `&#10008`;
     buttonDelete.addEventListener('click', () => deleteEventFromRender(target, interval, 'events', id));
 
     let buttonPause = document.createElement('button');
     // buttonPause.id = 'p' + id;
     buttonPause.classList.add('btn', 'btn-outline-danger', 'btn-sm', 'mt-2', 'mr-2', 'flex-shrink-0');
+    buttonPause.title='Пауза отображения счётчика';
     buttonPause.innerHTML = `<b>||</b> `;
     // buttonPause.addEventListener('click', () => console.log(`нажата пауза на ${id}`));
     buttonPause.addEventListener('click', () => pauseEvent(target, interval, 'events', id));
@@ -58,7 +60,7 @@ const addButton = (id, target, interval) => {
 };
 
 export const renderEvents = (arr, target, interval) => {
-    console.log(arr);
+    // console.log(arr);
     if (arr.length === 0) makeInfoMessage('Список событий пуст', 4000, target);
     else {
         let arrForTegWrapper = []; //создаём тэг для каждой обёртки события
